@@ -1,1055 +1,642 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trafigura Technical Assessment Prep</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; min-height: 100vh; }
-    .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-    header { text-align: center; padding: 30px 0; }
-    header h1 { font-size: 28px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
-    header p { color: #666; font-size: 15px; }
-    .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
-    .stat-card { background: white; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #e0e0e0; }
-    .stat-card .label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-    .stat-card .value { font-size: 24px; font-weight: 600; color: #1a1a1a; margin-top: 4px; }
-    .stat-card .value.correct { color: #16a34a; }
-    .stat-card .value.wrong { color: #dc2626; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-    .tab { padding: 12px 24px; border-radius: 8px; border: 1px solid #e0e0e0; background: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
-    .tab:hover { border-color: #999; }
-    .tab.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
-    .tab .count { font-size: 11px; background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
-    .tab.active .count { background: rgba(255,255,255,0.2); }
-    .question-card { background: white; border-radius: 16px; padding: 28px; border: 1px solid #e0e0e0; margin-bottom: 20px; }
-    .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .question-num { font-size: 13px; color: #888; }
-    .difficulty { font-size: 12px; padding: 4px 10px; border-radius: 20px; }
-    .difficulty.easy { background: #dcfce7; color: #166534; }
-    .difficulty.medium { background: #fef3c7; color: #92400e; }
-    .difficulty.hard { background: #fee2e2; color: #991b1b; }
-    .question-text { font-size: 17px; line-height: 1.6; color: #1a1a1a; margin-bottom: 20px; }
-    .question-text code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Monaco, monospace; font-size: 14px; }
-    .code-block { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; font-family: 'SF Mono', Monaco, monospace; font-size: 13px; line-height: 1.5; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
-    .options { display: flex; flex-direction: column; gap: 10px; }
-    .option { padding: 14px 18px; border: 1px solid #e0e0e0; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: flex-start; gap: 12px; }
-    .option:hover:not(.disabled) { border-color: #999; background: #fafafa; }
-    .option.selected { border-color: #3b82f6; background: #eff6ff; }
-    .option.correct { border-color: #16a34a; background: #dcfce7; }
-    .option.wrong { border-color: #dc2626; background: #fee2e2; }
-    .option.disabled { cursor: default; }
-    .option-letter { width: 26px; height: 26px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0; }
-    .option.selected .option-letter { background: #3b82f6; color: white; }
-    .option.correct .option-letter { background: #16a34a; color: white; }
-    .option.wrong .option-letter { background: #dc2626; color: white; }
-    .option-text { font-size: 15px; line-height: 1.5; }
-    .option-text code { background: #e5e7eb; padding: 1px 5px; border-radius: 3px; font-family: 'SF Mono', Monaco, monospace; font-size: 13px; }
-    .btn-row { display: flex; gap: 12px; margin-top: 20px; }
-    .btn { padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
-    .btn-primary { background: #1a1a1a; color: white; }
-    .btn-primary:hover { background: #333; }
-    .btn-secondary { background: white; color: #1a1a1a; border: 1px solid #e0e0e0; }
-    .btn-secondary:hover { background: #f5f5f5; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .explanation { margin-top: 20px; padding: 16px; background: #f0f9ff; border-radius: 10px; border-left: 4px solid #3b82f6; }
-    .explanation-title { font-weight: 600; color: #1e40af; margin-bottom: 8px; font-size: 14px; }
-    .explanation-text { font-size: 14px; line-height: 1.6; color: #1e3a5f; }
-    .progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; margin-bottom: 24px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius: 3px; transition: width 0.3s; }
-    .coding-section { margin-top: 20px; }
-    .code-editor { width: 100%; min-height: 200px; font-family: 'SF Mono', Monaco, monospace; font-size: 14px; padding: 16px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fafafa; resize: vertical; line-height: 1.5; }
-    .test-results { margin-top: 16px; }
-    .test-case { padding: 12px; border-radius: 8px; margin-bottom: 8px; font-family: 'SF Mono', Monaco, monospace; font-size: 13px; }
-    .test-case.pass { background: #dcfce7; color: #166534; }
-    .test-case.fail { background: #fee2e2; color: #991b1b; }
-    .timer { font-size: 18px; font-weight: 600; color: #dc2626; }
-    .timer.safe { color: #16a34a; }
-    .mode-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
-    .mode-btn { padding: 10px 20px; border-radius: 8px; border: 1px solid #e0e0e0; background: white; cursor: pointer; font-size: 14px; }
-    .mode-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
-    .hidden { display: none !important; }
-    .reset-btn { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    .reset-btn:hover { background: #dc2626; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trafigura Technical Assessment Prep</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0d0d;--surf:#161616;--surf2:#1e1e1e;--bdr:#2a2a2a;--bdr2:#383838;--txt:#e8e8e8;--mut:#777;--acc:#00d4aa;--acc2:#3b9eff;--warn:#ffaa00;--dan:#ff4d4d;--ok:#00cc77}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+.shell{display:grid;grid-template-columns:255px 1fr;min-height:100vh}
+/* SIDEBAR */
+.sidebar{background:var(--surf);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{padding:20px 18px 14px;border-bottom:1px solid var(--bdr)}
+.brand h1{font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--acc);font-family:'IBM Plex Mono',monospace}
+.brand p{font-size:11px;color:var(--mut);margin-top:3px}
+.dl-chip{margin:10px 18px;background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.25);border-radius:4px;padding:7px 10px}
+.dl-chip .dl{font-size:9px;color:var(--dan);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.dl-chip .dt{font-size:11px;color:var(--txt);font-weight:500;margin-top:2px}
+.nav-sec{padding:14px 0 6px}
+.nav-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);padding:0 18px 6px;font-family:'IBM Plex Mono',monospace}
+.nav-item{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;cursor:pointer;transition:all .15s;border-left:2px solid transparent}
+.nav-item:hover{background:var(--surf2)}
+.nav-item.active{background:rgba(0,212,170,.07);border-left-color:var(--acc)}
+.ni-left{display:flex;align-items:center;gap:9px}
+.ni-icon{font-size:13px;width:18px;text-align:center}
+.ni-lbl{font-size:12px;font-weight:500}
+.nav-item.active .ni-lbl{color:var(--acc)}
+.ni-cnt{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--mut);background:var(--surf2);border:1px solid var(--bdr);border-radius:3px;padding:1px 5px}
+.nav-item.active .ni-cnt{background:rgba(0,212,170,.1);border-color:rgba(0,212,170,.3);color:var(--acc)}
+/* SIDEBAR STATS */
+.sb-stats{padding:14px 18px;border-top:1px solid var(--bdr);margin-top:auto}
+.sbs-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:10px;font-family:'IBM Plex Mono',monospace}
+.sbs-row{display:flex;justify-content:space-between;margin-bottom:6px}
+.sbs-item{text-align:center}
+.sbs-val{font-size:18px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.sbs-lab{font-size:9px;color:var(--mut);margin-top:1px}
+.acc-bar{height:3px;background:var(--bdr);border-radius:2px;margin-top:6px}
+.acc-fill{height:3px;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;transition:width .5s}
+/* MAIN */
+.main{padding:28px 36px;overflow-y:auto}
+.pg-hdr{margin-bottom:22px}
+.pg-hdr h2{font-size:20px;font-weight:600}
+.pg-hdr p{font-size:12px;color:var(--mut);margin-top:3px}
+.hdr-row{display:flex;align-items:flex-start;justify-content:space-between}
+.mode-btns{display:flex;gap:6px}
+.mode-btn{padding:6px 14px;border-radius:4px;border:1px solid var(--bdr2);background:transparent;color:var(--mut);font-size:11px;cursor:pointer;font-family:'IBM Plex Mono',monospace;transition:all .15s}
+.mode-btn.active{border-color:var(--acc);color:var(--acc);background:rgba(0,212,170,.07)}
+.timer-el{font-size:22px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--acc);text-align:right;margin-bottom:6px}
+.timer-el.warn{color:var(--dan)}
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.prog-track{flex:1;height:2px;background:var(--bdr);border-radius:2px}
+.prog-fill{height:2px;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;transition:width .4s}
+.prog-lbl{font-size:10px;color:var(--mut);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+/* Q CARD */
+.q-card{background:var(--surf);border:1px solid var(--bdr);border-radius:8px;padding:24px;margin-bottom:14px}
+.q-hdr{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.q-num{font-size:10px;color:var(--mut);font-family:'IBM Plex Mono',monospace}
+.dbadge{font-size:9px;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:3px;letter-spacing:1px;text-transform:uppercase}
+.dbadge.easy{background:rgba(0,204,119,.1);color:var(--ok);border:1px solid rgba(0,204,119,.25)}
+.dbadge.medium{background:rgba(255,170,0,.1);color:var(--warn);border:1px solid rgba(255,170,0,.25)}
+.dbadge.hard{background:rgba(255,77,77,.1);color:var(--dan);border:1px solid rgba(255,77,77,.25)}
+.topic-badge{font-size:9px;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:3px;background:rgba(59,158,255,.1);color:var(--acc2);border:1px solid rgba(59,158,255,.2)}
+.q-txt{font-size:15px;line-height:1.65;margin-bottom:18px}
+.q-txt code{background:var(--surf2);color:var(--acc);padding:1px 6px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:12px}
+.code-blk{background:#111;border:1px solid var(--bdr);border-radius:5px;padding:14px 16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#ccc;line-height:1.6;overflow-x:auto;margin-bottom:18px;white-space:pre}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border:1px solid var(--bdr);border-radius:5px;cursor:pointer;transition:all .15s}
+.opt:hover:not(.locked){border-color:var(--bdr2);background:var(--surf2)}
+.opt.correct{border-color:rgba(0,204,119,.5);background:rgba(0,204,119,.07)}
+.opt.wrong{border-color:rgba(255,77,77,.5);background:rgba(255,77,77,.07)}
+.opt.reveal{border-color:rgba(0,204,119,.3);background:rgba(0,204,119,.04);opacity:.65}
+.opt.locked{cursor:default}
+.opt-key{width:22px;height:22px;border-radius:3px;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'IBM Plex Mono',monospace;flex-shrink:0;color:var(--mut)}
+.opt.correct .opt-key{background:rgba(0,204,119,.2);border-color:var(--ok);color:var(--ok)}
+.opt.wrong .opt-key{background:rgba(255,77,77,.2);border-color:var(--dan);color:var(--dan)}
+.opt.reveal .opt-key{background:rgba(0,204,119,.15);border-color:rgba(0,204,119,.4);color:var(--ok)}
+.opt-txt{font-size:13px;line-height:1.55}
+.opt-txt code{background:var(--surf2);color:var(--acc);padding:1px 4px;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+.exp{margin-top:16px;padding:14px 16px;background:rgba(59,158,255,.05);border:1px solid rgba(59,158,255,.15);border-radius:5px;border-left:3px solid var(--acc2)}
+.exp-title{font-size:9px;color:var(--acc2);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.exp-txt{font-size:12px;line-height:1.65;color:#aaa}
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-top:18px}
+.btn{padding:8px 18px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'IBM Plex Mono',monospace;border:1px solid var(--bdr2);background:transparent;color:var(--mut)}
+.btn:hover:not(:disabled){border-color:var(--acc);color:var(--acc)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn.primary{border-color:var(--acc);color:var(--acc);background:rgba(0,212,170,.07)}
+.btn.primary:hover{background:rgba(0,212,170,.13)}
+/* NEETCODE */
+.nc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.nc-card{background:var(--surf);border:1px solid var(--bdr);border-radius:7px;padding:16px;cursor:pointer;transition:all .2s}
+.nc-card:hover{border-color:var(--bdr2);background:var(--surf2)}
+.nc-card.open{border-color:var(--acc);background:rgba(0,212,170,.04)}
+.nc-title{font-size:13px;font-weight:500;line-height:1.4}
+.nc-meta{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;align-items:center}
+.nc-pat{font-size:9px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;border-radius:3px;background:rgba(59,158,255,.1);color:var(--acc2);border:1px solid rgba(59,158,255,.15)}
+.nc-lc{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--mut)}
+.nc-solved-badge{font-size:9px;color:var(--ok);font-family:'IBM Plex Mono',monospace}
+.nc-detail{margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr);display:none}
+.nc-card.open .nc-detail{display:block}
+.nc-desc{font-size:12px;color:#aaa;line-height:1.6;margin-bottom:10px}
+.nc-approach{font-size:11px;font-family:'IBM Plex Mono',monospace;background:#111;border:1px solid var(--bdr);border-radius:4px;padding:10px 12px;color:#bbb;line-height:1.55;white-space:pre-wrap}
+.nc-actions{display:flex;align-items:center;gap:10px;margin-top:10px}
+.nc-link{font-size:11px;color:var(--acc2);text-decoration:none;font-family:'IBM Plex Mono',monospace}
+.nc-link:hover{color:var(--acc)}
+/* FILTER */
+.filter-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.f-btn{padding:4px 10px;border-radius:3px;border:1px solid var(--bdr);background:transparent;color:var(--mut);font-size:10px;cursor:pointer;font-family:'IBM Plex Mono',monospace;transition:all .15s}
+.f-btn:hover{border-color:var(--bdr2);color:var(--txt)}
+.f-btn.active{border-color:var(--acc);color:var(--acc);background:rgba(0,212,170,.07)}
+.srch{padding:5px 10px;border-radius:4px;border:1px solid var(--bdr);background:var(--surf2);color:var(--txt);font-size:11px;font-family:'IBM Plex Mono',monospace;outline:none;width:180px}
+.srch:focus{border-color:var(--acc)}
+.srch::placeholder{color:var(--mut)}
+/* CODING */
+.code-editor{width:100%;min-height:200px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.6;padding:14px;background:#111;border:1px solid var(--bdr);border-radius:5px;color:#ccc;resize:vertical;outline:none}
+.code-editor:focus{border-color:var(--acc)}
+.hint-box{margin-top:8px;padding:8px 12px;background:rgba(255,170,0,.06);border:1px solid rgba(255,170,0,.2);border-radius:4px;font-size:11px;color:#cc9900;font-family:'IBM Plex Mono',monospace}
+.test-results{margin-top:12px;display:flex;flex-direction:column;gap:5px}
+.tc{padding:8px 12px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+.tc.pass{background:rgba(0,204,119,.07);border:1px solid rgba(0,204,119,.22);color:var(--ok)}
+.tc.fail{background:rgba(255,77,77,.07);border:1px solid rgba(255,77,77,.22);color:var(--dan)}
+.coding-btns{display:flex;gap:7px;margin-top:10px}
+/* RESET */
+.reset-btn{position:fixed;bottom:18px;right:18px;padding:8px 14px;background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.25);border-radius:4px;color:var(--dan);font-size:11px;cursor:pointer;font-family:'IBM Plex Mono',monospace;transition:all .15s;z-index:100}
+.reset-btn:hover{background:rgba(255,77,77,.16)}
+/* FLOATING TIMER */
+.float-timer{position:fixed;top:16px;right:20px;background:var(--surf);border:1px solid var(--bdr);border-radius:6px;padding:8px 14px;display:flex;align-items:center;gap:10px;z-index:200;transition:all .3s}
+.float-timer.hidden{display:none}
+.float-timer.warn{border-color:rgba(255,77,77,.5);background:rgba(255,77,77,.06)}
+.ft-time{font-size:20px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--acc);min-width:60px;text-align:center}
+.ft-time.warn{color:var(--dan)}
+.ft-label{font-size:9px;color:var(--mut);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.ft-btn{font-size:10px;font-family:'IBM Plex Mono',monospace;padding:3px 8px;border-radius:3px;cursor:pointer;border:1px solid var(--bdr2);background:transparent;color:var(--mut);transition:all .15s}
+.ft-btn:hover{border-color:var(--dan);color:var(--dan)}
+.ft-start{background:var(--surf);border:1px solid var(--bdr);border-radius:6px;padding:7px 14px;display:flex;align-items:center;gap:8px;position:fixed;top:16px;right:20px;z-index:200}
+.ft-start-btn{font-size:10px;font-family:'IBM Plex Mono',monospace;padding:4px 10px;border-radius:3px;cursor:pointer;border:1px solid var(--acc);background:rgba(0,212,170,.08);color:var(--acc);transition:all .15s}
+.ft-start-btn:hover{background:rgba(0,212,170,.15)}
+
+
+/* PER-QUESTION TIMER */
+.qt-bar-wrap{height:3px;background:var(--bdr);border-radius:2px;margin-bottom:18px;overflow:hidden}
+.qt-bar{height:3px;border-radius:2px;transition:width 1s linear,background .5s}
+.qt-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.qt-clock{display:flex;align-items:center;gap:8px}
+.qt-time{font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--acc);min-width:36px}
+.qt-time.warn{color:var(--warn)}
+.qt-time.crit{color:var(--dan)}
+.qt-label{font-size:9px;color:var(--mut);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.qt-limit{font-size:10px;color:var(--mut);font-family:'IBM Plex Mono',monospace}
+.qt-toggle{font-size:10px;font-family:'IBM Plex Mono',monospace;padding:2px 8px;border-radius:3px;cursor:pointer;border:1px solid var(--bdr2);background:transparent;color:var(--mut);transition:all .15s}
+.qt-toggle:hover{border-color:var(--acc);color:var(--acc)}
+.qt-toggle.on{border-color:var(--acc);color:var(--acc);background:rgba(0,212,170,.07)}
+.qt-expired{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:'IBM Plex Mono',monospace;padding:2px 8px;border-radius:3px;background:rgba(255,77,77,.1);color:var(--dan);border:1px solid rgba(255,77,77,.25)}
+.qt-split{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--mut);background:var(--surf2);border:1px solid var(--bdr);border-radius:3px;padding:2px 8px}
+.qt-split.fast{color:var(--ok);border-color:rgba(0,204,119,.3);background:rgba(0,204,119,.06)}
+.qt-split.slow{color:var(--warn);border-color:rgba(255,170,0,.3);background:rgba(255,170,0,.06)}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
+@media(max-width:860px){.shell{grid-template-columns:1fr}.sidebar{position:static;height:auto}.nc-grid{grid-template-columns:1fr}.main{padding:16px}}
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🎯 Trafigura Technical Assessment Prep</h1>
-      <p>Deadline: 06 April 2026 • Duration: 60 minutes • SQL, Python3, Git, Java + Coding</p>
-    </header>
-
-    <div class="stats-bar">
-      <div class="stat-card">
-        <div class="label">Questions Done</div>
-        <div class="value" id="totalDone">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Correct</div>
-        <div class="value correct" id="totalCorrect">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Wrong</div>
-        <div class="value wrong" id="totalWrong">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Accuracy</div>
-        <div class="value" id="accuracy">0%</div>
-      </div>
-    </div>
-
-    <div class="mode-toggle">
-      <button class="mode-btn active" onclick="setMode('practice')">Practice Mode</button>
-      <button class="mode-btn" onclick="setMode('timed')">Timed Mode (60 min)</button>
-    </div>
-
-    <div id="timerDisplay" class="hidden" style="text-align: center; margin-bottom: 20px;">
-      <span class="timer safe" id="timer">60:00</span>
-    </div>
-
-    <div class="tabs" id="tabs"></div>
-    
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-    </div>
-
-    <div id="questionArea"></div>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand"><h1>TRAFIGURA PREP</h1><p>Technical Graduate Assessment</p></div>
+  <div class="dl-chip"><div class="dl">Deadline</div><div class="dt">06 Apr 2026 · 23:59 Geneva</div></div>
+  <div class="nav-sec">
+    <div class="nav-lbl">MCQ Practice</div>
+    <div class="nav-item active" onclick="nav('sql')" id="nav-sql"><div class="ni-left"><span class="ni-icon">🗄</span><span class="ni-lbl">SQL</span></div><span class="ni-cnt" id="cnt-sql">10</span></div>
+    <div class="nav-item" onclick="nav('python')" id="nav-python"><div class="ni-left"><span class="ni-icon">🐍</span><span class="ni-lbl">Python</span></div><span class="ni-cnt" id="cnt-python">10</span></div>
+    <div class="nav-item" onclick="nav('git')" id="nav-git"><div class="ni-left"><span class="ni-icon">🌿</span><span class="ni-lbl">Git</span></div><span class="ni-cnt" id="cnt-git">10</span></div>
+    <div class="nav-item" onclick="nav('java')" id="nav-java"><div class="ni-left"><span class="ni-icon">☕</span><span class="ni-lbl">Java</span></div><span class="ni-cnt" id="cnt-java">10</span></div>
   </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Coding Practice</div>
+    <div class="nav-item" onclick="nav('neetcode')" id="nav-neetcode"><div class="ni-left"><span class="ni-icon">⚡</span><span class="ni-lbl">NeetCode Blind 75</span></div><span class="ni-cnt" id="cnt-neetcode">0/75</span></div>
+    <div class="nav-item" onclick="nav('coding')" id="nav-coding"><div class="ni-left"><span class="ni-icon">💻</span><span class="ni-lbl">Coding Drills</span></div><span class="ni-cnt" id="cnt-coding">5</span></div>
+  </div>
+  <div class="sb-stats">
+    <div class="sbs-title">Session Stats</div>
+    <div class="sbs-row">
+      <div class="sbs-item"><div class="sbs-val" id="s-done">0</div><div class="sbs-lab">Done</div></div>
+      <div class="sbs-item"><div class="sbs-val" style="color:var(--ok)" id="s-correct">0</div><div class="sbs-lab">Correct</div></div>
+      <div class="sbs-item"><div class="sbs-val" style="color:var(--dan)" id="s-wrong">0</div><div class="sbs-lab">Wrong</div></div>
+      <div class="sbs-item"><div class="sbs-val" id="s-acc">—</div><div class="sbs-lab">Acc</div></div>
+    </div>
+    <div class="acc-bar"><div class="acc-fill" id="acc-fill" style="width:0%"></div></div>
+  </div>
+</aside>
+<main class="main" id="mainArea"></main>
+</div>
+<button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+<!-- Floating timer widget -->
+<div id="ftStart" class="ft-start">
+  <span style="font-size:10px;color:var(--mut);font-family:'IBM Plex Mono',monospace">60:00 timed mode</span>
+  <button class="ft-start-btn" onclick="startFloatTimer()">▶ Start Timer</button>
+</div>
+<div id="ftRunning" class="float-timer hidden">
+  <div>
+    <div class="ft-label">Time Left</div>
+    <div class="ft-time" id="ftDisplay">60:00</div>
+  </div>
+  <button class="ft-btn" onclick="stopFloatTimer()">✕ Stop</button>
+</div>
 
-  <button class="reset-btn" onclick="resetProgress()">Reset Progress</button>
 
-  <script>
-    const questions = {
-      sql: [
-        {
-          id: 'sql1',
-          text: 'What is the difference between <code>WHERE</code> and <code>HAVING</code> clauses?',
-          options: [
-            { text: '<code>WHERE</code> filters rows before grouping, <code>HAVING</code> filters after grouping', correct: true },
-            { text: '<code>HAVING</code> filters rows before grouping, <code>WHERE</code> filters after grouping', correct: false },
-            { text: 'They are interchangeable', correct: false },
-            { text: '<code>WHERE</code> only works with aggregates', correct: false }
-          ],
-          explanation: 'WHERE filters individual rows before any grouping occurs. HAVING filters groups after GROUP BY has been applied, and can use aggregate functions like COUNT(), SUM(), etc.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'sql2',
-          text: 'Given tables <code>orders</code> and <code>customers</code>, what does this query return?',
-          code: `SELECT c.name, COUNT(o.id) as order_count
-FROM customers c
-LEFT JOIN orders o ON c.id = o.customer_id
-GROUP BY c.name;`,
-          options: [
-            { text: 'All customers with their order count (including 0 for customers with no orders)', correct: true },
-            { text: 'Only customers who have placed at least one order', correct: false },
-            { text: 'All orders with customer names', correct: false },
-            { text: 'Error - cannot use COUNT with LEFT JOIN', correct: false }
-          ],
-          explanation: 'LEFT JOIN returns all rows from the left table (customers) even if there\'s no match in orders. COUNT(o.id) will return 0 for customers with no orders since NULL values aren\'t counted.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'sql3',
-          text: 'What does <code>COALESCE(column1, column2, \'default\')</code> return?',
-          options: [
-            { text: 'The first non-NULL value from the arguments', correct: true },
-            { text: 'The sum of all non-NULL values', correct: false },
-            { text: 'NULL if any argument is NULL', correct: false },
-            { text: 'Always returns \'default\'', correct: false }
-          ],
-          explanation: 'COALESCE returns the first non-NULL value in the list. If column1 is NULL, it checks column2. If that\'s also NULL, it returns \'default\'.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'sql4',
-          text: 'Which query correctly finds duplicate email addresses?',
-          code: `-- Table: users (id, email, name)`,
-          options: [
-            { text: '<code>SELECT email FROM users GROUP BY email HAVING COUNT(*) > 1</code>', correct: true },
-            { text: '<code>SELECT email FROM users WHERE COUNT(email) > 1</code>', correct: false },
-            { text: '<code>SELECT DISTINCT email FROM users WHERE email = email</code>', correct: false },
-            { text: '<code>SELECT email FROM users GROUP BY email WHERE COUNT(*) > 1</code>', correct: false }
-          ],
-          explanation: 'GROUP BY groups rows by email, then HAVING COUNT(*) > 1 filters to show only emails that appear more than once. WHERE cannot use aggregate functions.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'sql5',
-          text: 'What is the result of an <code>INNER JOIN</code> when there are no matching rows?',
-          options: [
-            { text: 'Returns no rows for that combination', correct: true },
-            { text: 'Returns NULL values for unmatched columns', correct: false },
-            { text: 'Returns all rows from both tables', correct: false },
-            { text: 'Throws an error', correct: false }
-          ],
-          explanation: 'INNER JOIN only returns rows where there is a match in both tables. If no match exists, those rows are simply not included in the result set.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'sql6',
-          text: 'What does this subquery return?',
-          code: `SELECT name FROM employees 
-WHERE salary > (SELECT AVG(salary) FROM employees);`,
-          options: [
-            { text: 'Names of employees earning above average salary', correct: true },
-            { text: 'Names of all employees', correct: false },
-            { text: 'The average salary value', correct: false },
-            { text: 'Error - cannot use subquery in WHERE clause', correct: false }
-          ],
-          explanation: 'The subquery calculates the average salary, then the outer query returns all employees whose salary exceeds that average.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'sql7',
-          text: 'What is the difference between <code>UNION</code> and <code>UNION ALL</code>?',
-          options: [
-            { text: '<code>UNION</code> removes duplicates, <code>UNION ALL</code> keeps all rows', correct: true },
-            { text: '<code>UNION ALL</code> removes duplicates, <code>UNION</code> keeps all rows', correct: false },
-            { text: '<code>UNION</code> combines columns, <code>UNION ALL</code> combines rows', correct: false },
-            { text: 'There is no difference', correct: false }
-          ],
-          explanation: 'UNION performs a distinct operation and removes duplicate rows. UNION ALL includes all rows from both queries, including duplicates. UNION ALL is faster because it skips the deduplication step.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'sql8',
-          text: 'What does <code>ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC)</code> do?',
-          options: [
-            { text: 'Assigns a unique number to each row within each department, ordered by salary descending', correct: true },
-            { text: 'Counts total rows in each department', correct: false },
-            { text: 'Returns the row number across the entire table', correct: false },
-            { text: 'Calculates the rank allowing ties', correct: false }
-          ],
-          explanation: 'ROW_NUMBER() assigns sequential integers. PARTITION BY restarts numbering for each department. ORDER BY determines the sequence (highest salary = 1).',
-          difficulty: 'hard'
-        },
-        {
-          id: 'sql9',
-          text: 'Which statement about NULL values is correct?',
-          options: [
-            { text: '<code>NULL = NULL</code> evaluates to UNKNOWN, not TRUE', correct: true },
-            { text: '<code>NULL = NULL</code> evaluates to TRUE', correct: false },
-            { text: '<code>NULL + 5</code> equals 5', correct: false },
-            { text: '<code>COUNT(*)</code> and <code>COUNT(column)</code> always return the same value', correct: false }
-          ],
-          explanation: 'NULL represents unknown, so comparing NULL to NULL yields UNKNOWN. Use IS NULL to check for NULL. NULL in arithmetic makes the result NULL. COUNT(*) counts rows, COUNT(column) excludes NULLs.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'sql10',
-          text: 'What does this query return?',
-          code: `SELECT department, MAX(salary) as max_sal
-FROM employees
-GROUP BY department
-ORDER BY max_sal DESC
-LIMIT 3;`,
-          options: [
-            { text: 'The 3 departments with the highest maximum salaries', correct: true },
-            { text: 'The 3 highest-paid employees', correct: false },
-            { text: 'All departments sorted by max salary', correct: false },
-            { text: 'Error - cannot ORDER BY an alias', correct: false }
-          ],
-          explanation: 'GROUP BY aggregates by department, MAX(salary) finds highest salary per department, ORDER BY sorts descending, LIMIT 3 returns only top 3 departments.',
-          difficulty: 'medium'
-        }
-      ],
-      python: [
-        {
-          id: 'py1',
-          text: 'What is the output of this code?',
-          code: `x = [1, 2, 3]
-y = x
-y.append(4)
-print(x)`,
-          options: [
-            { text: '<code>[1, 2, 3, 4]</code>', correct: true },
-            { text: '<code>[1, 2, 3]</code>', correct: false },
-            { text: '<code>[4]</code>', correct: false },
-            { text: 'Error', correct: false }
-          ],
-          explanation: 'Lists are mutable and y = x creates a reference to the same list, not a copy. Modifying y also modifies x. Use x.copy() or x[:] to create a separate copy.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'py2',
-          text: 'What does <code>*args</code> do in a function definition?',
-          options: [
-            { text: 'Allows the function to accept any number of positional arguments as a tuple', correct: true },
-            { text: 'Allows the function to accept keyword arguments as a dictionary', correct: false },
-            { text: 'Unpacks a list into separate arguments', correct: false },
-            { text: 'Makes all arguments required', correct: false }
-          ],
-          explanation: '*args collects extra positional arguments into a tuple. **kwargs collects keyword arguments into a dictionary. When calling a function, * unpacks iterables.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'py3',
-          text: 'What is the output?',
-          code: `def func(a, b=[]):
-    b.append(a)
-    return b
+<script id="data-json" type="application/json">
+{"questions": {"sql": [{"id": "s1", "text": "What is the difference between WHERE and HAVING?", "code": null, "opts": ["WHERE filters rows before grouping; HAVING filters groups after GROUP BY", "HAVING filters before grouping; WHERE filters after", "They are interchangeable", "WHERE only works with aggregates"], "ans": 0, "diff": "easy", "exp": "WHERE runs before any aggregation and cannot use aggregate functions like COUNT(), SUM(). HAVING runs after GROUP BY and is used to filter on aggregated results."}, {"id": "s2", "text": "What does this query return?", "code": "SELECT c.name, COUNT(o.id) as order_count\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id\nGROUP BY c.name;", "opts": ["All customers with their order count (0 for those with no orders)", "Only customers who placed at least one order", "All orders with customer names", "Error - cannot use COUNT with LEFT JOIN"], "ans": 0, "diff": "medium", "exp": "LEFT JOIN returns ALL rows from the left table (customers) even with no match. COUNT(o.id) counts non-NULL values - so customers with no orders get 0."}, {"id": "s3", "text": "What does COALESCE(col1, col2, 'default') return?", "code": null, "opts": ["The first non-NULL value from the arguments", "The sum of all non-NULL values", "NULL if any argument is NULL", "Always returns 'default'"], "ans": 0, "diff": "easy", "exp": "COALESCE scans arguments left to right and returns the first one that is not NULL. If col1 is NULL it tries col2. Essential for NULL handling in assessments."}, {"id": "s4", "text": "Which query correctly finds duplicate email addresses?", "code": "-- Table: users(id, email, name)", "opts": ["SELECT email FROM users GROUP BY email HAVING COUNT(*) > 1", "SELECT email FROM users WHERE COUNT(email) > 1", "SELECT DISTINCT email FROM users WHERE email = email", "SELECT email FROM users GROUP BY email WHERE COUNT(*) > 1"], "ans": 0, "diff": "medium", "exp": "GROUP BY + HAVING COUNT(*) > 1 is the standard pattern for duplicates. You cannot use WHERE with aggregate functions."}, {"id": "s5", "text": "What is the result of INNER JOIN when there are no matching rows?", "code": null, "opts": ["Returns no rows for that combination", "Returns NULL for unmatched columns", "Returns all rows from both tables", "Throws an error"], "ans": 0, "diff": "easy", "exp": "INNER JOIN returns ONLY rows that have a match in BOTH tables. Unmatched rows are excluded entirely."}, {"id": "s6", "text": "What does this subquery do?", "code": "SELECT name FROM employees\nWHERE salary > (SELECT AVG(salary) FROM employees);", "opts": ["Returns employees earning above the average salary", "Returns all employees", "Returns the average salary value", "Error - cannot use subquery in WHERE"], "ans": 0, "diff": "medium", "exp": "The inner query executes first and returns a single value (the average). The outer query uses that as a filter."}, {"id": "s7", "text": "What is the difference between UNION and UNION ALL?", "code": null, "opts": ["UNION removes duplicates; UNION ALL keeps all rows including duplicates", "UNION ALL removes duplicates; UNION keeps all", "UNION combines columns; UNION ALL combines rows", "No difference"], "ans": 0, "diff": "easy", "exp": "UNION performs a DISTINCT operation (expensive). UNION ALL appends rows without deduplication - faster."}, {"id": "s8", "text": "What does ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) do?", "code": null, "opts": ["Assigns a unique sequential number within each department ordered by salary desc", "Counts total rows per department", "Returns row number across the entire table", "Calculates rank allowing ties"], "ans": 0, "diff": "hard", "exp": "ROW_NUMBER() is a window function. PARTITION BY dept creates separate numbered sequences per department. The highest earner in each department gets rank 1."}, {"id": "s9", "text": "Which statement about NULL is correct?", "code": null, "opts": ["NULL = NULL evaluates to UNKNOWN, not TRUE", "NULL = NULL evaluates to TRUE", "NULL + 5 equals 5", "COUNT(*) and COUNT(column) always return the same value"], "ans": 0, "diff": "medium", "exp": "NULL means unknown. Comparing unknown to unknown is unknown, not true. Use IS NULL to check for NULL. COUNT(col) skips NULLs; COUNT(*) counts all rows."}, {"id": "s10", "text": "What does this query return?", "code": "SELECT department, MAX(salary) as max_sal\nFROM employees\nGROUP BY department\nORDER BY max_sal DESC\nLIMIT 3;", "opts": ["The 3 departments with the highest maximum salaries", "The 3 highest-paid employees", "All departments sorted by max salary", "Error - cannot ORDER BY an alias"], "ans": 0, "diff": "medium", "exp": "GROUP BY aggregates per department. MAX(salary) finds highest in each. ORDER BY max_sal DESC sorts largest first. LIMIT 3 takes top 3."}], "python": [{"id": "p1", "text": "What is the output?", "code": "x = [1, 2, 3]\ny = x\ny.append(4)\nprint(x)", "opts": ["[1, 2, 3, 4]", "[1, 2, 3]", "[4]", "Error"], "ans": 0, "diff": "easy", "exp": "Lists are mutable objects. y = x makes y point to the SAME object in memory, not a copy. So y.append(4) modifies the list x also points to. To copy: use x.copy() or x[:]."}, {"id": "p2", "text": "What does *args do in a function definition?", "code": null, "opts": ["Collects extra positional arguments into a tuple", "Collects keyword arguments into a dictionary", "Unpacks a list into separate args", "Makes all arguments required"], "ans": 0, "diff": "medium", "exp": "*args packs any extra positional arguments into a tuple. **kwargs packs extra keyword arguments into a dict."}, {"id": "p3", "text": "What is the output?", "code": "def func(a, b=[]):\n    b.append(a)\n    return b\n\nprint(func(1))\nprint(func(2))", "opts": ["[1] then [1, 2]", "[1] then [2]", "[1] then [1]", "Error"], "ans": 0, "diff": "hard", "exp": "Mutable default arguments are created ONCE at function definition, not on each call. The same list is reused. Fix: use b=None and set b = [] inside the function."}, {"id": "p4", "text": "Which creates [0, 2, 4, 6, 8]?", "code": null, "opts": ["[x for x in range(10) if x % 2 == 0]", "[x for x in range(5) * 2]", "[x * 2 for x in range(10)]", "[x for x in range(1, 10, 2)]"], "ans": 0, "diff": "easy", "exp": "range(10) gives 0-9. Filtering x%2==0 keeps only even numbers: 0,2,4,6,8."}, {"id": "p5", "text": "What is the difference between 'is' and '=='?", "code": null, "opts": ["is checks identity (same object in memory); == checks equality (same value)", "== checks identity; is checks equality", "They are interchangeable for all types", "is is only for None comparisons"], "ans": 0, "diff": "medium", "exp": "is returns True only if both variables point to the exact same object in memory. == returns True if values are equal. Always use 'x is None', never 'x == None'."}, {"id": "p6", "text": "What is the output?", "code": "d = {'a': 1, 'b': 2}\nprint(d.get('c', 0))", "opts": ["0", "None", "KeyError", "'c'"], "ans": 0, "diff": "easy", "exp": "dict.get(key, default) returns the value if key exists, otherwise returns the default (0 here). d['c'] would raise a KeyError."}, {"id": "p7", "text": "What does this print?", "code": "nums = [1, 2, 3, 4, 5]\nprint(nums[1:4])\nprint(nums[::2])\nprint(nums[::-1])", "opts": ["[2,3,4], [1,3,5], [5,4,3,2,1]", "[1,2,3,4], [2,4], [5,4,3,2,1]", "[2,3,4], [2,4], [1,2,3,4,5]", "[1,2,3], [1,3,5], [5,4,3,2,1]"], "ans": 0, "diff": "medium", "exp": "[1:4] = indices 1,2,3 = [2,3,4]. [::2] = every other element = [1,3,5]. [::-1] = reverse = [5,4,3,2,1]."}, {"id": "p8", "text": "What is the output?", "code": "s = {1, 2, 3}\ns.add(2)\ns.add(4)\nprint(len(s))", "opts": ["4", "5", "3", "Error"], "ans": 0, "diff": "easy", "exp": "Sets store unique elements only. Adding 2 again has no effect. Adding 4 makes it {1,2,3,4}. len() = 4."}, {"id": "p9", "text": "What does lambda x, y: x + y do?", "code": null, "opts": ["Creates an anonymous function that returns the sum of two arguments", "Creates a named function called lambda", "Returns a tuple (x, y)", "Invalid Python syntax"], "ans": 0, "diff": "easy", "exp": "Lambda creates a small anonymous function inline. lambda x, y: x+y is equivalent to def f(x,y): return x+y."}, {"id": "p10", "text": "What is the output?", "code": "try:\n    x = 1 / 0\nexcept ZeroDivisionError:\n    print('A')\nexcept Exception:\n    print('B')\nfinally:\n    print('C')", "opts": ["A then C", "B then C", "Just A", "Just C"], "ans": 0, "diff": "medium", "exp": "ZeroDivisionError is caught by the first except block (prints A). finally ALWAYS executes (prints C). Order matters: put specific exceptions before general ones."}], "git": [{"id": "g1", "text": "What is the difference between git pull and git fetch?", "code": null, "opts": ["fetch downloads changes without merging; pull fetches AND merges", "pull downloads without merging; fetch merges", "They are identical", "fetch only works with tags"], "ans": 0, "diff": "easy", "exp": "git fetch downloads commits/files from remote but does NOT touch your working directory. git pull = git fetch + git merge."}, {"id": "g2", "text": "What does 'git rebase main' do on a feature branch?", "code": null, "opts": ["Replays your feature branch commits on top of the latest main commits", "Merges main into feature with a merge commit", "Deletes the feature branch", "Creates a backup"], "ans": 0, "diff": "medium", "exp": "Rebase rewrites history by replaying your commits on top of another branch tip. Creates clean linear history. Never rebase shared/public branches."}, {"id": "g3", "text": "How do you undo the last commit but KEEP changes staged?", "code": null, "opts": ["git reset --soft HEAD~1", "git reset --hard HEAD~1", "git revert HEAD", "git checkout HEAD~1"], "ans": 0, "diff": "medium", "exp": "--soft keeps changes staged. --mixed (default) unstages but keeps in working dir. --hard discards ALL changes. revert creates a NEW commit that undoes - safe for shared branches."}, {"id": "g4", "text": "What does git stash do?", "code": null, "opts": ["Saves uncommitted changes temporarily and reverts to a clean state", "Permanently deletes uncommitted changes", "Creates a new branch", "Commits with message stash"], "ans": 0, "diff": "easy", "exp": "git stash saves your local modifications and reverts to HEAD. git stash pop restores them. Use when you need to switch branches without committing half-done work."}, {"id": "g5", "text": "What is the difference between git reset and git revert?", "code": null, "opts": ["reset rewrites history by moving HEAD; revert creates a new commit undoing changes", "revert rewrites history; reset creates a new commit", "They are identical", "reset only works on staged files"], "ans": 0, "diff": "medium", "exp": "reset is dangerous on shared branches - it rewrites history. revert is safe - it adds a new commit that undoes a previous one."}, {"id": "g6", "text": "Which command shows commit history as a graph?", "code": null, "opts": ["git log --graph --oneline", "git status --graph", "git show --tree", "git branch --visual"], "ans": 0, "diff": "easy", "exp": "git log --graph draws a text graph. --oneline shows each commit on one line. --all includes all branches."}, {"id": "g7", "text": "What does git cherry-pick <hash> do?", "code": null, "opts": ["Applies a specific commit from another branch to the current branch", "Removes that commit from history", "Merges all commits from another branch", "Creates a tag at that commit"], "ans": 0, "diff": "medium", "exp": "Cherry-pick applies the changes of a single commit to your current branch. Useful for hotfixes."}, {"id": "g8", "text": "How do you rename the branch you are currently on?", "code": null, "opts": ["git branch -m new-name", "git rename branch new-name", "git checkout -b new-name then delete old", "git mv branch new-name"], "ans": 0, "diff": "easy", "exp": "git branch -m new-name renames the current branch. To rename a branch you are NOT on: git branch -m old-name new-name."}, {"id": "g9", "text": "What happens during a merge conflict?", "code": null, "opts": ["Git marks conflicting sections in files and waits for manual resolution", "Git automatically picks the newer change", "The merge is aborted automatically", "Git creates two separate branches"], "ans": 0, "diff": "medium", "exp": "Git inserts conflict markers showing both versions. You manually edit to resolve, then git add and git commit. Use git merge --abort to cancel."}, {"id": "g10", "text": "What does git remote -v show?", "code": null, "opts": ["Lists all remote repositories with their fetch/push URLs", "Verbose git version info", "Verifies remote connection", "Lists all local branches"], "ans": 0, "diff": "easy", "exp": "git remote -v shows all configured remotes with their URLs for fetch and push."}], "java": [{"id": "j1", "text": "What is the output?", "code": "String s1 = \"Hello\";\nString s2 = \"Hello\";\nString s3 = new String(\"Hello\");\nSystem.out.println(s1 == s2);\nSystem.out.println(s1 == s3);", "opts": ["true then false", "true then true", "false then false", "false then true"], "ans": 0, "diff": "medium", "exp": "String literals are interned (pooled) - s1 and s2 reference the same object. new String() creates a NEW object on the heap. ALWAYS use .equals() for String value comparison."}, {"id": "j2", "text": "Which access modifier allows access within the same package AND subclasses?", "code": null, "opts": ["protected", "private", "public", "default (no modifier)"], "ans": 0, "diff": "easy", "exp": "Visibility: private (class only) -> default (same package) -> protected (same package + subclasses) -> public (everywhere)."}, {"id": "j3", "text": "What is method overloading?", "code": null, "opts": ["Same method name, different parameter list (compile-time polymorphism)", "Redefining a parent class method in a child class", "Making a method run faster", "Calling a method multiple times"], "ans": 0, "diff": "easy", "exp": "Overloading: same name, different parameters - decided at compile time. Overriding: same name + same signature in a subclass - decided at runtime."}, {"id": "j4", "text": "What is the output?", "code": "int[] arr = {1, 2, 3};\nSystem.out.println(arr.length);\n\nArrayList<Integer> list = new ArrayList<>();\nlist.add(1); list.add(2); list.add(3);\nSystem.out.println(list.size());", "opts": ["3 then 3", "Error - arrays use length()", "2 then 3", "Error - ArrayList has no size()"], "ans": 0, "diff": "easy", "exp": "Arrays use .length (a property, no parentheses). ArrayList uses .size() (a method). This inconsistency is a classic Java gotcha."}, {"id": "j5", "text": "What does the final keyword do on a variable?", "code": null, "opts": ["Makes the reference unchangeable after initialization", "Makes it static", "Makes it private", "Deletes it after use"], "ans": 0, "diff": "easy", "exp": "final variable = can only be assigned once. final method = cannot be overridden. final class = cannot be subclassed (e.g. String)."}, {"id": "j6", "text": "Key difference between interface and abstract class?", "code": null, "opts": ["A class can implement multiple interfaces but extend only one abstract class", "Interfaces can have constructors; abstract classes cannot", "Abstract classes cannot have implemented methods", "They are functionally identical"], "ans": 0, "diff": "medium", "exp": "Multiple inheritance via interfaces. Single inheritance for class hierarchy. Since Java 8, interfaces can have default and static methods."}, {"id": "j7", "text": "What exception is thrown for an invalid array index?", "code": null, "opts": ["ArrayIndexOutOfBoundsException", "IndexOutOfBoundsException", "NullPointerException", "IllegalArgumentException"], "ans": 0, "diff": "easy", "exp": "ArrayIndexOutOfBoundsException for arrays. IndexOutOfBoundsException is the parent class, also thrown by List implementations."}, {"id": "j8", "text": "What is the output?", "code": "Integer a = 127;\nInteger b = 127;\nInteger c = 128;\nInteger d = 128;\nSystem.out.println(a == b);\nSystem.out.println(c == d);", "opts": ["true then false", "true then true", "false then false", "false then true"], "ans": 0, "diff": "hard", "exp": "Java caches Integer objects from -128 to 127. Within this range autoboxed integers share the same object. Outside this range new objects are created. Always use .equals() for Integer comparison."}, {"id": "j9", "text": "What does HashMap allow that Hashtable does not?", "code": null, "opts": ["Null keys and null values", "Thread safety", "Ordered iteration", "Primitive type keys"], "ans": 0, "diff": "medium", "exp": "HashMap: allows one null key and multiple null values, NOT synchronized (faster). Hashtable: no nulls, synchronized. For thread-safe modern use: ConcurrentHashMap."}, {"id": "j10", "text": "What is the output?", "code": "class Parent { void show() { System.out.print(\"Parent\"); } }\nclass Child extends Parent { void show() { System.out.print(\"Child\"); } }\n\nParent obj = new Child();\nobj.show();", "opts": ["Child", "Parent", "Parent Child", "Compilation error"], "ans": 0, "diff": "medium", "exp": "Runtime polymorphism: the reference type is Parent but the actual object at runtime is Child. Java calls the overridden method based on the actual runtime type - dynamic dispatch."}], "coding": [{"id": "c1", "text": "Write a function that returns the sum of all even numbers in a list.", "starter": "def sum_even(numbers):\n    # Your code here\n    pass\n\n# sum_even([1,2,3,4,5,6]) -> 12\n# sum_even([1,3,5]) -> 0\n# sum_even([]) -> 0", "diff": "easy", "hint": "Use a list comprehension with x % 2 == 0", "fn": "sum_even"}, {"id": "c2", "text": "Return the first non-repeating character in a string, or None if all repeat.", "starter": "def first_unique_char(s):\n    # Your code here\n    pass\n\n# first_unique_char('leetcode') -> 'l'\n# first_unique_char('aabb') -> None", "diff": "medium", "hint": "Count frequencies with a dict, then scan the string for first count==1", "fn": "first_unique_char"}, {"id": "c3", "text": "Return the two indices of numbers that add up to a target. One solution guaranteed.", "starter": "def two_sum(nums, target):\n    # Your code here\n    pass\n\n# two_sum([2,7,11,15], 9) -> [0,1]\n# two_sum([3,2,4], 6) -> [1,2]", "diff": "medium", "hint": "Use a hashmap: store {value: index}. For each num check if (target-num) is in the map.", "fn": "two_sum"}, {"id": "c4", "text": "Check if a string is a palindrome ignoring case and non-alphanumeric characters.", "starter": "def is_palindrome(s):\n    # Your code here\n    pass\n\n# is_palindrome('A man, a plan, a canal: Panama') -> True\n# is_palindrome('race a car') -> False", "diff": "easy", "hint": "Clean string: [c.lower() for c in s if c.isalnum()], then compare to its reverse", "fn": "is_palindrome"}, {"id": "c5", "text": "Return the longest common prefix among a list of strings.", "starter": "def longest_common_prefix(strs):\n    # Your code here\n    pass\n\n# longest_common_prefix(['flower','flow','flight']) -> 'fl'\n# longest_common_prefix(['dog','racecar','car']) -> ''", "diff": "medium", "hint": "Sort the list, then compare only first and last string character by character", "fn": "longest_common_prefix"}]}, "neetcode": [{"id": "nc1", "title": "Contains Duplicate", "diff": "easy", "pattern": "Arrays & Hashing", "lc": 217, "desc": "Given an array, return true if any value appears at least twice.", "approach": "Use a set. Add each element; if already in set return True.\nTime: O(n), Space: O(n)\n\ndef containsDuplicate(nums):\n    seen = set()\n    for n in nums:\n        if n in seen: return True\n        seen.add(n)\n    return False"}, {"id": "nc2", "title": "Valid Anagram", "diff": "easy", "pattern": "Arrays & Hashing", "lc": 242, "desc": "Check if two strings are anagrams of each other.", "approach": "Use Counter or sort both strings.\nTime: O(n), Space: O(1)\n\nfrom collections import Counter\ndef isAnagram(s, t):\n    return Counter(s) == Counter(t)"}, {"id": "nc3", "title": "Two Sum", "diff": "easy", "pattern": "Arrays & Hashing", "lc": 1, "desc": "Return indices of two numbers that add up to target.", "approach": "HashMap: store {value: index}. For each num check if complement exists.\nTime: O(n), Space: O(n)\n\ndef twoSum(nums, target):\n    seen = {}\n    for i, n in enumerate(nums):\n        if target - n in seen:\n            return [seen[target-n], i]\n        seen[n] = i"}, {"id": "nc4", "title": "Group Anagrams", "diff": "medium", "pattern": "Arrays & Hashing", "lc": 49, "desc": "Group strings that are anagrams of each other.", "approach": "Key = sorted string. Use defaultdict.\nTime: O(n * k log k)\n\nfrom collections import defaultdict\ndef groupAnagrams(strs):\n    groups = defaultdict(list)\n    for s in strs:\n        groups[tuple(sorted(s))].append(s)\n    return list(groups.values())"}, {"id": "nc5", "title": "Top K Frequent Elements", "diff": "medium", "pattern": "Arrays & Hashing", "lc": 347, "desc": "Return the k most frequent elements.", "approach": "Bucket sort by frequency - O(n) solution.\n\nfrom collections import Counter\ndef topKFrequent(nums, k):\n    count = Counter(nums)\n    buckets = [[] for _ in range(len(nums)+1)]\n    for num, freq in count.items():\n        buckets[freq].append(num)\n    res = []\n    for i in range(len(buckets)-1, 0, -1):\n        res.extend(buckets[i])\n        if len(res) >= k: return res[:k]"}, {"id": "nc6", "title": "Encode and Decode Strings", "diff": "medium", "pattern": "Arrays & Hashing", "lc": 271, "desc": "Design encode/decode for a list of strings.", "approach": "Prefix each string with its length + '#' delimiter.\n\ndef encode(strs):\n    return ''.join(f'{len(s)}#{s}' for s in strs)\n\ndef decode(s):\n    res, i = [], 0\n    while i < len(s):\n        j = s.index('#', i)\n        length = int(s[i:j])\n        res.append(s[j+1:j+1+length])\n        i = j + 1 + length\n    return res"}, {"id": "nc7", "title": "Product of Array Except Self", "diff": "medium", "pattern": "Arrays & Hashing", "lc": 238, "desc": "Return array where output[i] is product of all elements except nums[i]. No division, O(n).", "approach": "Two-pass prefix/suffix product:\nForward: output[i] = product of all LEFT elements\nBackward: multiply by product of all RIGHT elements\n\ndef productExceptSelf(nums):\n    n = len(nums)\n    output = [1] * n\n    prefix = 1\n    for i in range(n):\n        output[i] = prefix\n        prefix *= nums[i]\n    suffix = 1\n    for i in range(n-1, -1, -1):\n        output[i] *= suffix\n        suffix *= nums[i]\n    return output"}, {"id": "nc8", "title": "Longest Consecutive Sequence", "diff": "medium", "pattern": "Arrays & Hashing", "lc": 128, "desc": "Find length of longest consecutive sequence. O(n).", "approach": "Convert to set. For each num that is a SEQUENCE START (num-1 not in set), count streak.\n\ndef longestConsecutive(nums):\n    num_set = set(nums)\n    best = 0\n    for n in num_set:\n        if n - 1 not in num_set:\n            length = 1\n            while n + length in num_set:\n                length += 1\n            best = max(best, length)\n    return best"}, {"id": "nc9", "title": "Valid Palindrome", "diff": "easy", "pattern": "Two Pointers", "lc": 125, "desc": "Check if string is palindrome ignoring non-alphanumeric characters.", "approach": "Two pointers moving inward.\n\ndef isPalindrome(s):\n    l, r = 0, len(s) - 1\n    while l < r:\n        while l < r and not s[l].isalnum(): l += 1\n        while l < r and not s[r].isalnum(): r -= 1\n        if s[l].lower() != s[r].lower(): return False\n        l += 1; r -= 1\n    return True"}, {"id": "nc10", "title": "3Sum", "diff": "medium", "pattern": "Two Pointers", "lc": 15, "desc": "Find all unique triplets that sum to zero.", "approach": "Sort first. Fix one element, use two pointers for the rest. Skip duplicates.\n\ndef threeSum(nums):\n    nums.sort(); res = []\n    for i, a in enumerate(nums):\n        if i > 0 and a == nums[i-1]: continue\n        l, r = i+1, len(nums)-1\n        while l < r:\n            s = a + nums[l] + nums[r]\n            if s > 0: r -= 1\n            elif s < 0: l += 1\n            else:\n                res.append([a, nums[l], nums[r]])\n                l += 1\n                while l < r and nums[l] == nums[l-1]: l += 1\n    return res"}, {"id": "nc11", "title": "Container With Most Water", "diff": "medium", "pattern": "Two Pointers", "lc": 11, "desc": "Find two lines forming a container with the most water.", "approach": "Two pointers at both ends. Move the SHORTER pointer inward (greedy).\nArea = min(h[l], h[r]) * (r - l)\n\ndef maxArea(height):\n    l, r = 0, len(height) - 1\n    max_water = 0\n    while l < r:\n        max_water = max(max_water, min(height[l], height[r]) * (r - l))\n        if height[l] < height[r]: l += 1\n        else: r -= 1\n    return max_water"}, {"id": "nc12", "title": "Best Time to Buy and Sell Stock", "diff": "easy", "pattern": "Sliding Window", "lc": 121, "desc": "Find the max profit from buying and selling a stock once.", "approach": "Track min price seen so far and max profit.\n\ndef maxProfit(prices):\n    min_price = float('inf')\n    max_profit = 0\n    for p in prices:\n        min_price = min(min_price, p)\n        max_profit = max(max_profit, p - min_price)\n    return max_profit"}, {"id": "nc13", "title": "Longest Substring Without Repeating Characters", "diff": "medium", "pattern": "Sliding Window", "lc": 3, "desc": "Find length of longest substring without repeating characters.", "approach": "Sliding window with a set. Shrink left when duplicate found.\n\ndef lengthOfLongestSubstring(s):\n    char_set = set()\n    l = 0; res = 0\n    for r in range(len(s)):\n        while s[r] in char_set:\n            char_set.remove(s[l])\n            l += 1\n        char_set.add(s[r])\n        res = max(res, r - l + 1)\n    return res"}, {"id": "nc14", "title": "Longest Repeating Character Replacement", "diff": "medium", "pattern": "Sliding Window", "lc": 424, "desc": "Find longest substring after replacing at most k characters to make all same.", "approach": "Window is valid if: window_size - max_freq <= k\n\ndef characterReplacement(s, k):\n    count = {}; max_freq = 0; l = 0; res = 0\n    for r in range(len(s)):\n        count[s[r]] = count.get(s[r], 0) + 1\n        max_freq = max(max_freq, count[s[r]])\n        if (r - l + 1) - max_freq > k:\n            count[s[l]] -= 1; l += 1\n        res = max(res, r - l + 1)\n    return res"}, {"id": "nc15", "title": "Minimum Window Substring", "diff": "hard", "pattern": "Sliding Window", "lc": 76, "desc": "Find the minimum window in s that contains all characters of t.", "approach": "Two-pointer sliding window + frequency maps.\n\nfrom collections import Counter\ndef minWindow(s, t):\n    if not t: return ''\n    count_t = Counter(t)\n    window = {}; have, need = 0, len(count_t)\n    res, res_len = [-1,-1], float('inf')\n    l = 0\n    for r, c in enumerate(s):\n        window[c] = window.get(c,0) + 1\n        if c in count_t and window[c] == count_t[c]: have += 1\n        while have == need:\n            if (r-l+1) < res_len: res = [l,r]; res_len = r-l+1\n            window[s[l]] -= 1\n            if s[l] in count_t and window[s[l]] < count_t[s[l]]: have -= 1\n            l += 1\n    l, r = res\n    return s[l:r+1] if res_len != float('inf') else ''"}, {"id": "nc16", "title": "Valid Parentheses", "diff": "easy", "pattern": "Stack", "lc": 20, "desc": "Check if brackets are valid.", "approach": "Stack - push opening brackets, pop and match for closing.\n\ndef isValid(s):\n    stack = []\n    pairs = {')':'(',']':'[','}':'{'}\n    for c in s:\n        if c in pairs:\n            if not stack or stack[-1] != pairs[c]: return False\n            stack.pop()\n        else: stack.append(c)\n    return not stack"}, {"id": "nc17", "title": "Binary Search", "diff": "easy", "pattern": "Binary Search", "lc": 704, "desc": "Search for target in sorted array. Return index or -1.", "approach": "Classic binary search template.\n\ndef search(nums, target):\n    l, r = 0, len(nums) - 1\n    while l <= r:\n        mid = l + (r - l) // 2\n        if nums[mid] == target: return mid\n        elif nums[mid] < target: l = mid + 1\n        else: r = mid - 1\n    return -1"}, {"id": "nc18", "title": "Search a 2D Matrix", "diff": "medium", "pattern": "Binary Search", "lc": 74, "desc": "Search for target in m x n sorted matrix.", "approach": "Treat matrix as a 1D sorted array. Map mid to row/col.\n\ndef searchMatrix(matrix, target):\n    m, n = len(matrix), len(matrix[0])\n    l, r = 0, m * n - 1\n    while l <= r:\n        mid = l + (r - l) // 2\n        val = matrix[mid // n][mid % n]\n        if val == target: return True\n        elif val < target: l = mid + 1\n        else: r = mid - 1\n    return False"}, {"id": "nc19", "title": "Reverse Linked List", "diff": "easy", "pattern": "Linked List", "lc": 206, "desc": "Reverse a singly linked list.", "approach": "Iterative - three pointers: prev, curr, next.\n\ndef reverseList(head):\n    prev, curr = None, head\n    while curr:\n        nxt = curr.next\n        curr.next = prev\n        prev = curr\n        curr = nxt\n    return prev"}, {"id": "nc20", "title": "Merge Two Sorted Lists", "diff": "easy", "pattern": "Linked List", "lc": 21, "desc": "Merge two sorted linked lists.", "approach": "Dummy node - compare heads and advance the smaller one.\n\ndef mergeTwoLists(l1, l2):\n    dummy = ListNode()\n    curr = dummy\n    while l1 and l2:\n        if l1.val <= l2.val: curr.next = l1; l1 = l1.next\n        else: curr.next = l2; l2 = l2.next\n        curr = curr.next\n    curr.next = l1 or l2\n    return dummy.next"}, {"id": "nc21", "title": "Linked List Cycle", "diff": "easy", "pattern": "Linked List", "lc": 141, "desc": "Detect if a linked list has a cycle.", "approach": "Floyd's tortoise and hare: slow=1 step, fast=2 steps. If they meet, cycle exists.\n\ndef hasCycle(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n        if slow == fast: return True\n    return False"}, {"id": "nc22", "title": "Reorder List", "diff": "medium", "pattern": "Linked List", "lc": 143, "desc": "Reorder list L0->Ln->L1->Ln-1->L2...", "approach": "1. Find middle (slow/fast pointers)\n2. Reverse second half\n3. Merge both halves\n\ndef reorderList(head):\n    slow, fast = head, head.next\n    while fast and fast.next:\n        slow = slow.next; fast = fast.next.next\n    second = slow.next; slow.next = None\n    prev = None\n    while second:\n        tmp = second.next; second.next = prev; prev = second; second = tmp\n    first, second = head, prev\n    while second:\n        tmp1, tmp2 = first.next, second.next\n        first.next = second; second.next = tmp1\n        first, second = tmp1, tmp2"}, {"id": "nc23", "title": "Remove Nth Node From End", "diff": "medium", "pattern": "Linked List", "lc": 19, "desc": "Remove the nth node from the end of the list.", "approach": "Two pointers with n gap.\n\ndef removeNthFromEnd(head, n):\n    dummy = ListNode(0, head)\n    left = dummy; right = head\n    while n > 0: right = right.next; n -= 1\n    while right: left = left.next; right = right.next\n    left.next = left.next.next\n    return dummy.next"}, {"id": "nc24", "title": "Merge K Sorted Lists", "diff": "hard", "pattern": "Linked List", "lc": 23, "desc": "Merge k sorted linked lists.", "approach": "Min-heap. Push (val, index, node) for each list head.\n\nimport heapq\ndef mergeKLists(lists):\n    heap = []\n    for i, node in enumerate(lists):\n        if node: heapq.heappush(heap, (node.val, i, node))\n    dummy = curr = ListNode()\n    while heap:\n        val, i, node = heapq.heappop(heap)\n        curr.next = node; curr = curr.next\n        if node.next: heapq.heappush(heap, (node.next.val, i, node.next))\n    return dummy.next"}, {"id": "nc25", "title": "Invert Binary Tree", "diff": "easy", "pattern": "Trees", "lc": 226, "desc": "Invert/mirror a binary tree.", "approach": "Recursive: swap left and right, recurse on both.\n\ndef invertTree(root):\n    if not root: return None\n    root.left, root.right = root.right, root.left\n    invertTree(root.left); invertTree(root.right)\n    return root"}, {"id": "nc26", "title": "Maximum Depth of Binary Tree", "diff": "easy", "pattern": "Trees", "lc": 104, "desc": "Find the maximum depth of a binary tree.", "approach": "Recursive DFS: depth = 1 + max(left, right)\n\ndef maxDepth(root):\n    if not root: return 0\n    return 1 + max(maxDepth(root.left), maxDepth(root.right))"}, {"id": "nc27", "title": "Same Tree", "diff": "easy", "pattern": "Trees", "lc": 100, "desc": "Check if two binary trees are identical.", "approach": "Recursive - compare values then recurse on children.\n\ndef isSameTree(p, q):\n    if not p and not q: return True\n    if not p or not q: return False\n    if p.val != q.val: return False\n    return isSameTree(p.left,q.left) and isSameTree(p.right,q.right)"}, {"id": "nc28", "title": "Subtree of Another Tree", "diff": "easy", "pattern": "Trees", "lc": 572, "desc": "Check if subRoot is a subtree of root.", "approach": "Use isSameTree as helper. Check at every node.\n\ndef isSubtree(root, subRoot):\n    if not root: return False\n    if isSameTree(root, subRoot): return True\n    return isSubtree(root.left, subRoot) or isSubtree(root.right, subRoot)"}, {"id": "nc29", "title": "Lowest Common Ancestor of BST", "diff": "medium", "pattern": "Trees", "lc": 235, "desc": "Find LCA in a Binary Search Tree.", "approach": "Use BST property: both less -> go left, both greater -> go right, else = LCA.\n\ndef lowestCommonAncestor(root, p, q):\n    while root:\n        if p.val < root.val and q.val < root.val: root = root.left\n        elif p.val > root.val and q.val > root.val: root = root.right\n        else: return root"}, {"id": "nc30", "title": "Binary Tree Level Order Traversal", "diff": "medium", "pattern": "Trees", "lc": 102, "desc": "Return node values level by level (BFS).", "approach": "BFS with a queue. Process all nodes at current level before moving to next.\n\nfrom collections import deque\ndef levelOrder(root):\n    if not root: return []\n    res = []; q = deque([root])\n    while q:\n        level = []\n        for _ in range(len(q)):\n            node = q.popleft()\n            level.append(node.val)\n            if node.left: q.append(node.left)\n            if node.right: q.append(node.right)\n        res.append(level)\n    return res"}, {"id": "nc31", "title": "Validate Binary Search Tree", "diff": "medium", "pattern": "Trees", "lc": 98, "desc": "Check if a binary tree is a valid BST.", "approach": "Pass down min/max bounds. Each node must satisfy min < val < max.\n\ndef isValidBST(root, low=float('-inf'), high=float('inf')):\n    if not root: return True\n    if not (low < root.val < high): return False\n    return isValidBST(root.left, low, root.val) and isValidBST(root.right, root.val, high)"}, {"id": "nc32", "title": "Kth Smallest Element in BST", "diff": "medium", "pattern": "Trees", "lc": 230, "desc": "Find the kth smallest element in a BST.", "approach": "In-order traversal of BST gives sorted order. Stop at kth element.\n\ndef kthSmallest(root, k):\n    stack = []\n    while True:\n        while root: stack.append(root); root = root.left\n        root = stack.pop(); k -= 1\n        if k == 0: return root.val\n        root = root.right"}, {"id": "nc33", "title": "Construct Binary Tree from Preorder and Inorder", "diff": "medium", "pattern": "Trees", "lc": 105, "desc": "Build tree from preorder and inorder traversal arrays.", "approach": "preorder[0] = root. Find root in inorder -> splits left/right subtrees.\n\ndef buildTree(preorder, inorder):\n    if not preorder: return None\n    root = TreeNode(preorder[0])\n    mid = inorder.index(preorder[0])\n    root.left = buildTree(preorder[1:mid+1], inorder[:mid])\n    root.right = buildTree(preorder[mid+1:], inorder[mid+1:])\n    return root"}, {"id": "nc34", "title": "Binary Tree Maximum Path Sum", "diff": "hard", "pattern": "Trees", "lc": 124, "desc": "Find the maximum path sum in a binary tree.", "approach": "DFS. At each node: max gain ignoring negatives. Update global max.\n\ndef maxPathSum(root):\n    res = [root.val]\n    def dfs(node):\n        if not node: return 0\n        l = max(dfs(node.left), 0)\n        r = max(dfs(node.right), 0)\n        res[0] = max(res[0], node.val + l + r)\n        return node.val + max(l, r)\n    dfs(root)\n    return res[0]"}, {"id": "nc35", "title": "Serialize and Deserialize Binary Tree", "diff": "hard", "pattern": "Trees", "lc": 297, "desc": "Design algorithm to serialize and deserialize a binary tree.", "approach": "Pre-order DFS. Use 'N' for null, comma-separated.\n\ndef serialize(root):\n    res = []\n    def dfs(node):\n        if not node: res.append('N'); return\n        res.append(str(node.val))\n        dfs(node.left); dfs(node.right)\n    dfs(root); return ','.join(res)"}, {"id": "nc36", "title": "Climbing Stairs", "diff": "easy", "pattern": "Dynamic Programming", "lc": 70, "desc": "Count ways to climb n stairs taking 1 or 2 steps at a time.", "approach": "Fibonacci pattern. dp[i] = dp[i-1] + dp[i-2]\n\ndef climbStairs(n):\n    a, b = 1, 1\n    for _ in range(n - 1):\n        a, b = b, a + b\n    return b"}, {"id": "nc37", "title": "House Robber", "diff": "medium", "pattern": "Dynamic Programming", "lc": 198, "desc": "Max money robbing houses without robbing adjacent ones.", "approach": "dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Optimize to O(1) space.\n\ndef rob(nums):\n    prev2, prev1 = 0, 0\n    for n in nums:\n        prev2, prev1 = prev1, max(prev1, prev2 + n)\n    return prev1"}, {"id": "nc38", "title": "Coin Change", "diff": "medium", "pattern": "Dynamic Programming", "lc": 322, "desc": "Find minimum number of coins to make up an amount.", "approach": "Bottom-up DP. dp[i] = min coins for amount i.\n\ndef coinChange(coins, amount):\n    dp = [float('inf')] * (amount + 1)\n    dp[0] = 0\n    for i in range(1, amount + 1):\n        for c in coins:\n            if c <= i: dp[i] = min(dp[i], dp[i-c] + 1)\n    return dp[amount] if dp[amount] != float('inf') else -1"}, {"id": "nc39", "title": "Longest Common Subsequence", "diff": "medium", "pattern": "Dynamic Programming", "lc": 1143, "desc": "Find length of longest common subsequence of two strings.", "approach": "2D DP. If chars match: dp[i][j] = 1 + dp[i-1][j-1]. Else: max of neighbors.\n\ndef longestCommonSubsequence(text1, text2):\n    m, n = len(text1), len(text2)\n    dp = [[0]*(n+1) for _ in range(m+1)]\n    for i in range(1, m+1):\n        for j in range(1, n+1):\n            if text1[i-1] == text2[j-1]: dp[i][j] = 1 + dp[i-1][j-1]\n            else: dp[i][j] = max(dp[i-1][j], dp[i][j-1])\n    return dp[m][n]"}, {"id": "nc40", "title": "Word Break", "diff": "medium", "pattern": "Dynamic Programming", "lc": 139, "desc": "Check if string s can be segmented into words from wordDict.", "approach": "DP. dp[i] = True if s[:i] can be segmented.\n\ndef wordBreak(s, wordDict):\n    word_set = set(wordDict)\n    dp = [False] * (len(s) + 1); dp[0] = True\n    for i in range(1, len(s)+1):\n        for j in range(i):\n            if dp[j] and s[j:i] in word_set: dp[i] = True; break\n    return dp[len(s)]"}, {"id": "nc41", "title": "Combination Sum IV", "diff": "medium", "pattern": "Dynamic Programming", "lc": 377, "desc": "Find the number of combinations that add up to target.", "approach": "dp[i] = number of ways to make amount i.\n\ndef combinationSum4(nums, target):\n    dp = [0] * (target + 1); dp[0] = 1\n    for i in range(1, target + 1):\n        for n in nums:\n            if i - n >= 0: dp[i] += dp[i - n]\n    return dp[target]"}, {"id": "nc42", "title": "Decode Ways", "diff": "medium", "pattern": "Dynamic Programming", "lc": 91, "desc": "Count ways to decode a digit string (A=1...Z=26).", "approach": "dp[i] = ways to decode s[:i]. Check one-digit and two-digit decodings.\n\ndef numDecodings(s):\n    dp = {len(s): 1}\n    for i in range(len(s)-1, -1, -1):\n        if s[i] == '0': dp[i] = 0; continue\n        dp[i] = dp[i+1]\n        if i+1 < len(s) and (s[i] == '1' or s[i] == '2' and s[i+1] in '0123456'):\n            dp[i] += dp.get(i+2, 0)\n    return dp[0]"}, {"id": "nc43", "title": "Unique Paths", "diff": "medium", "pattern": "Dynamic Programming", "lc": 62, "desc": "Count paths from top-left to bottom-right moving only right or down.", "approach": "dp[i][j] = dp[i-1][j] + dp[i][j-1]. Optimize to 1D.\n\ndef uniquePaths(m, n):\n    row = [1] * n\n    for _ in range(m-1):\n        new_row = [1] * n\n        for j in range(n-2, -1, -1): new_row[j] = new_row[j+1] + row[j]\n        row = new_row\n    return row[0]"}, {"id": "nc44", "title": "Jump Game", "diff": "medium", "pattern": "Dynamic Programming", "lc": 55, "desc": "Determine if you can reach the last index.", "approach": "Greedy - track furthest reachable index.\n\ndef canJump(nums):\n    max_reach = 0\n    for i, n in enumerate(nums):\n        if i > max_reach: return False\n        max_reach = max(max_reach, i + n)\n    return True"}, {"id": "nc45", "title": "Number of Islands", "diff": "medium", "pattern": "Graphs", "lc": 200, "desc": "Count number of islands (connected groups of 1s) in a grid.", "approach": "DFS. When we find a '1', increment count and flood-fill to '0'.\n\ndef numIslands(grid):\n    if not grid: return 0\n    count = 0\n    def dfs(r, c):\n        if r<0 or c<0 or r>=len(grid) or c>=len(grid[0]) or grid[r][c]!='1': return\n        grid[r][c] = '0'\n        dfs(r+1,c); dfs(r-1,c); dfs(r,c+1); dfs(r,c-1)\n    for r in range(len(grid)):\n        for c in range(len(grid[0])):\n            if grid[r][c] == '1': count += 1; dfs(r, c)\n    return count"}, {"id": "nc46", "title": "Clone Graph", "diff": "medium", "pattern": "Graphs", "lc": 133, "desc": "Deep copy a connected undirected graph.", "approach": "DFS with a hashmap {original: clone}.\n\ndef cloneGraph(node):\n    old_to_new = {}\n    def dfs(node):\n        if node in old_to_new: return old_to_new[node]\n        clone = Node(node.val)\n        old_to_new[node] = clone\n        for neighbor in node.neighbors: clone.neighbors.append(dfs(neighbor))\n        return clone\n    return dfs(node) if node else None"}, {"id": "nc47", "title": "Pacific Atlantic Water Flow", "diff": "medium", "pattern": "Graphs", "lc": 417, "desc": "Find cells from which water can flow to both oceans.", "approach": "Reverse BFS/DFS from both oceans. Find intersection.\n\ndef pacificAtlantic(heights):\n    m, n = len(heights), len(heights[0])\n    pac, atl = set(), set()\n    def dfs(r, c, visited, prev_h):\n        if (r,c) in visited or r<0 or c<0 or r>=m or c>=n or heights[r][c]<prev_h: return\n        visited.add((r,c))\n        for dr,dc in [(1,0),(-1,0),(0,1),(0,-1)]: dfs(r+dr,c+dc,visited,heights[r][c])\n    for c in range(n): dfs(0,c,pac,heights[0][c]); dfs(m-1,c,atl,heights[m-1][c])\n    for r in range(m): dfs(r,0,pac,heights[r][0]); dfs(r,n-1,atl,heights[r][n-1])\n    return [[r,c] for r in range(m) for c in range(n) if (r,c) in pac and (r,c) in atl]"}, {"id": "nc48", "title": "Course Schedule", "diff": "medium", "pattern": "Graphs", "lc": 207, "desc": "Determine if you can finish all courses (cycle detection).", "approach": "DFS cycle detection. States: 0=unvisited, 1=visiting, 2=done.\n\ndef canFinish(numCourses, prerequisites):\n    adj = [[] for _ in range(numCourses)]\n    for a, b in prerequisites: adj[b].append(a)\n    state = [0] * numCourses\n    def dfs(node):\n        if state[node] == 1: return False\n        if state[node] == 2: return True\n        state[node] = 1\n        for nei in adj[node]:\n            if not dfs(nei): return False\n        state[node] = 2; return True\n    return all(dfs(i) for i in range(numCourses))"}, {"id": "nc49", "title": "Graph Valid Tree", "diff": "medium", "pattern": "Graphs", "lc": 261, "desc": "Determine if n nodes and edges form a valid tree.", "approach": "Valid tree = connected + no cycles = exactly n-1 edges + all nodes reachable.\n\ndef validTree(n, edges):\n    if len(edges) != n - 1: return False\n    adj = [[] for _ in range(n)]\n    for a, b in edges: adj[a].append(b); adj[b].append(a)\n    visited = set()\n    def dfs(node): visited.add(node); [dfs(nei) for nei in adj[node] if nei not in visited]\n    dfs(0)\n    return len(visited) == n"}, {"id": "nc50", "title": "Find Median from Data Stream", "diff": "hard", "pattern": "Heap", "lc": 295, "desc": "Design data structure supporting addNum and findMedian.", "approach": "Two heaps: max-heap (left) and min-heap (right). Balance sizes.\n\nimport heapq\nclass MedianFinder:\n    def __init__(self):\n        self.small = []  # max heap (negate values)\n        self.large = []  # min heap\n    def addNum(self, num):\n        heapq.heappush(self.small, -num)\n        if self.small and self.large and (-self.small[0] > self.large[0]):\n            heapq.heappush(self.large, -heapq.heappop(self.small))\n        if len(self.small) > len(self.large) + 1:\n            heapq.heappush(self.large, -heapq.heappop(self.small))\n        if len(self.large) > len(self.small):\n            heapq.heappush(self.small, -heapq.heappop(self.large))\n    def findMedian(self):\n        if len(self.small) > len(self.large): return -self.small[0]\n        return (-self.small[0] + self.large[0]) / 2"}, {"id": "nc51", "title": "Combination Sum", "diff": "medium", "pattern": "Backtracking", "lc": 39, "desc": "Find all combinations of candidates that sum to target (unlimited reuse).", "approach": "Backtracking: include current (stay at same index) or skip (move to next).\n\ndef combinationSum(candidates, target):\n    res = []\n    def dfs(i, current, total):\n        if total == target: res.append(list(current)); return\n        if i >= len(candidates) or total > target: return\n        current.append(candidates[i])\n        dfs(i, current, total + candidates[i])\n        current.pop()\n        dfs(i+1, current, total)\n    dfs(0, [], 0)\n    return res"}, {"id": "nc52", "title": "Word Search", "diff": "medium", "pattern": "Backtracking", "lc": 79, "desc": "Find if word exists in grid (adjacent cells, no reuse).", "approach": "DFS backtracking. Mark cell as visited, recurse, unmark.\n\ndef exist(board, word):\n    m, n = len(board), len(board[0])\n    def dfs(r, c, i):\n        if i == len(word): return True\n        if r<0 or c<0 or r>=m or c>=n or board[r][c]!=word[i]: return False\n        tmp = board[r][c]; board[r][c] = '#'\n        found = any([dfs(r+1,c,i+1),dfs(r-1,c,i+1),dfs(r,c+1,i+1),dfs(r,c-1,i+1)])\n        board[r][c] = tmp\n        return found\n    return any(dfs(r,c,0) for r in range(m) for c in range(n))"}, {"id": "nc53", "title": "Implement Trie (Prefix Tree)", "diff": "medium", "pattern": "Trie", "lc": 208, "desc": "Implement a Trie with insert, search, and startsWith.", "approach": "Each TrieNode has children dict and is_end flag.\n\nclass TrieNode:\n    def __init__(self): self.children = {}; self.is_end = False\n\nclass Trie:\n    def __init__(self): self.root = TrieNode()\n    def insert(self, word):\n        node = self.root\n        for c in word:\n            if c not in node.children: node.children[c] = TrieNode()\n            node = node.children[c]\n        node.is_end = True\n    def search(self, word):\n        node = self.root\n        for c in word:\n            if c not in node.children: return False\n            node = node.children[c]\n        return node.is_end"}, {"id": "nc54", "title": "Merge Intervals", "diff": "medium", "pattern": "Intervals", "lc": 56, "desc": "Merge all overlapping intervals.", "approach": "Sort by start. If current start <= prev end, merge.\n\ndef merge(intervals):\n    intervals.sort(key=lambda x: x[0])\n    res = [intervals[0]]\n    for start, end in intervals[1:]:\n        if start <= res[-1][1]: res[-1][1] = max(res[-1][1], end)\n        else: res.append([start, end])\n    return res"}, {"id": "nc55", "title": "Non-overlapping Intervals", "diff": "medium", "pattern": "Intervals", "lc": 435, "desc": "Find minimum intervals to remove to make rest non-overlapping.", "approach": "Greedy - sort by end time. Keep interval with earliest end when overlap occurs.\n\ndef eraseOverlapIntervals(intervals):\n    intervals.sort(key=lambda x: x[1])\n    res = 0; prev_end = intervals[0][1]\n    for start, end in intervals[1:]:\n        if start < prev_end: res += 1\n        else: prev_end = end\n    return res"}, {"id": "nc56", "title": "Number of 1 Bits", "diff": "easy", "pattern": "Bit Manipulation", "lc": 191, "desc": "Count number of 1 bits (Hamming weight).", "approach": "n & (n-1) removes the rightmost set bit. Count iterations.\n\ndef hammingWeight(n):\n    count = 0\n    while n: n &= (n - 1); count += 1\n    return count"}, {"id": "nc57", "title": "Counting Bits", "diff": "easy", "pattern": "Bit Manipulation", "lc": 338, "desc": "Return array where dp[i] = number of 1 bits in i, for 0 to n.", "approach": "dp[i] = dp[i >> 1] + (i & 1)\n\ndef countBits(n):\n    dp = [0] * (n + 1)\n    for i in range(1, n+1): dp[i] = dp[i >> 1] + (i & 1)\n    return dp"}, {"id": "nc58", "title": "Missing Number", "diff": "easy", "pattern": "Bit Manipulation", "lc": 268, "desc": "Find the missing number in range [0, n].", "approach": "XOR all indices with all values - pairs cancel, leaving missing number.\n\ndef missingNumber(nums):\n    res = len(nums)\n    for i, n in enumerate(nums): res ^= i ^ n\n    return res"}, {"id": "nc59", "title": "Reverse Bits", "diff": "easy", "pattern": "Bit Manipulation", "lc": 190, "desc": "Reverse bits of a 32-bit unsigned integer.", "approach": "Process each bit: take LSB, shift result left, repeat 32 times.\n\ndef reverseBits(n):\n    res = 0\n    for _ in range(32):\n        res = (res << 1) | (n & 1)\n        n >>= 1\n    return res"}, {"id": "nc60", "title": "Sum of Two Integers", "diff": "medium", "pattern": "Bit Manipulation", "lc": 371, "desc": "Add two integers without using + or - operators.", "approach": "XOR = addition without carry. AND << 1 = carry. Repeat until no carry.\n\ndef getSum(a, b):\n    mask = 0xFFFFFFFF\n    while b & mask:\n        carry = (a & b) << 1\n        a = a ^ b; b = carry\n    return a if b == 0 else a & mask"}, {"id": "nc61", "title": "Rotate Image", "diff": "medium", "pattern": "Math / Matrix", "lc": 48, "desc": "Rotate n x n matrix 90 degrees clockwise in-place.", "approach": "Step 1: Transpose (swap [i][j] and [j][i])\nStep 2: Reverse each row\n\ndef rotate(matrix):\n    n = len(matrix)\n    for i in range(n):\n        for j in range(i+1, n): matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]\n    for row in matrix: row.reverse()"}, {"id": "nc62", "title": "Spiral Matrix", "diff": "medium", "pattern": "Math / Matrix", "lc": 54, "desc": "Return all elements of a matrix in spiral order.", "approach": "Shrink boundaries: top, bottom, left, right.\n\ndef spiralOrder(matrix):\n    res = []\n    top, bottom, left, right = 0, len(matrix)-1, 0, len(matrix[0])-1\n    while top <= bottom and left <= right:\n        for c in range(left, right+1): res.append(matrix[top][c]); top += 1\n        for r in range(top, bottom+1): res.append(matrix[r][right]); right -= 1\n        if top <= bottom:\n            for c in range(right, left-1, -1): res.append(matrix[bottom][c]); bottom -= 1\n        if left <= right:\n            for r in range(bottom, top-1, -1): res.append(matrix[r][left]); left += 1\n    return res"}, {"id": "nc63", "title": "Set Matrix Zeroes", "diff": "medium", "pattern": "Math / Matrix", "lc": 73, "desc": "If element is 0, set its entire row and column to 0 in-place.", "approach": "Use first row and column as markers to avoid extra space.\n\ndef setZeroes(matrix):\n    m, n = len(matrix), len(matrix[0])\n    first_col = any(matrix[i][0] == 0 for i in range(m))\n    first_row = any(matrix[0][j] == 0 for j in range(n))\n    for i in range(1, m):\n        for j in range(1, n):\n            if matrix[i][j] == 0: matrix[i][0] = 0; matrix[0][j] = 0\n    for i in range(1, m):\n        for j in range(1, n):\n            if matrix[i][0] == 0 or matrix[0][j] == 0: matrix[i][j] = 0\n    if first_row:\n        for j in range(n): matrix[0][j] = 0\n    if first_col:\n        for i in range(m): matrix[i][0] = 0"}, {"id": "nc64", "title": "Longest Palindromic Substring", "diff": "medium", "pattern": "String", "lc": 5, "desc": "Find the longest palindromic substring.", "approach": "Expand around center - try odd and even length palindromes at each index.\n\ndef longestPalindrome(s):\n    res = ''\n    def expand(l, r):\n        while l >= 0 and r < len(s) and s[l] == s[r]: l -= 1; r += 1\n        return s[l+1:r]\n    for i in range(len(s)):\n        odd = expand(i, i)\n        even = expand(i, i+1)\n        if len(odd) > len(res): res = odd\n        if len(even) > len(res): res = even\n    return res"}, {"id": "nc65", "title": "Palindromic Substrings", "diff": "medium", "pattern": "String", "lc": 647, "desc": "Count the number of palindromic substrings.", "approach": "Expand around center - same as longest palindrome but count.\n\ndef countSubstrings(s):\n    count = 0\n    def expand(l, r):\n        nonlocal count\n        while l >= 0 and r < len(s) and s[l] == s[r]: count += 1; l -= 1; r += 1\n    for i in range(len(s)):\n        expand(i, i); expand(i, i+1)\n    return count"}, {"id": "nc66", "title": "Find Minimum in Rotated Sorted Array", "diff": "medium", "pattern": "Binary Search", "lc": 153, "desc": "Find the minimum in a rotated sorted array.", "approach": "Binary search. If mid > right, minimum is in right half.\n\ndef findMin(nums):\n    l, r = 0, len(nums) - 1\n    while l < r:\n        mid = l + (r - l) // 2\n        if nums[mid] > nums[r]: l = mid + 1\n        else: r = mid\n    return nums[l]"}, {"id": "nc67", "title": "Search in Rotated Sorted Array", "diff": "medium", "pattern": "Binary Search", "lc": 33, "desc": "Search for target in a rotated sorted array.", "approach": "Check which half is sorted, then check if target is in that half.\n\ndef search(nums, target):\n    l, r = 0, len(nums) - 1\n    while l <= r:\n        mid = l + (r - l) // 2\n        if nums[mid] == target: return mid\n        if nums[l] <= nums[mid]:\n            if nums[l] <= target < nums[mid]: r = mid - 1\n            else: l = mid + 1\n        else:\n            if nums[mid] < target <= nums[r]: l = mid + 1\n            else: r = mid - 1\n    return -1"}, {"id": "nc68", "title": "Maximum Subarray", "diff": "medium", "pattern": "Dynamic Programming", "lc": 53, "desc": "Find the contiguous subarray with the largest sum (Kadane's algorithm).", "approach": "curr = max(num, curr + num). Track max.\n\ndef maxSubArray(nums):\n    max_sum = nums[0]; curr = nums[0]\n    for n in nums[1:]:\n        curr = max(n, curr + n)\n        max_sum = max(max_sum, curr)\n    return max_sum"}, {"id": "nc69", "title": "Maximum Product Subarray", "diff": "medium", "pattern": "Dynamic Programming", "lc": 152, "desc": "Find the contiguous subarray with the largest product.", "approach": "Track both max and min (negative x negative = positive).\n\ndef maxProduct(nums):\n    res = max(nums); curr_min = curr_max = 1\n    for n in nums:\n        if n == 0: curr_min = curr_max = 1; continue\n        tmp = curr_max * n\n        curr_max = max(n, curr_max*n, curr_min*n)\n        curr_min = min(n, tmp, curr_min*n)\n        res = max(res, curr_max)\n    return res"}, {"id": "nc70", "title": "Longest Increasing Subsequence", "diff": "medium", "pattern": "Dynamic Programming", "lc": 300, "desc": "Find length of longest strictly increasing subsequence.", "approach": "O(n log n) patience sorting: maintain tails array + binary search.\n\ndef lengthOfLIS(nums):\n    tails = []\n    for n in nums:\n        lo, hi = 0, len(tails)\n        while lo < hi:\n            mid = (lo + hi) // 2\n            if tails[mid] < n: lo = mid + 1\n            else: hi = mid\n        if lo == len(tails): tails.append(n)\n        else: tails[lo] = n\n    return len(tails)"}, {"id": "nc71", "title": "Number of Connected Components in Graph", "diff": "medium", "pattern": "Graphs", "lc": 323, "desc": "Count connected components in an undirected graph.", "approach": "Union-Find (DSU).\n\ndef countComponents(n, edges):\n    parent = list(range(n))\n    def find(x):\n        while parent[x] != x: parent[x] = parent[parent[x]]; x = parent[x]\n        return x\n    def union(x, y):\n        px, py = find(x), find(y)\n        if px == py: return 0\n        parent[px] = py; return 1\n    return n - sum(union(a, b) for a, b in edges)"}, {"id": "nc72", "title": "Alien Dictionary", "diff": "hard", "pattern": "Graphs", "lc": 269, "desc": "Derive order of characters in alien language from sorted word list.", "approach": "Build directed graph from adjacent words. Topological sort. Detect cycles.\n\nfrom collections import defaultdict\ndef alienOrder(words):\n    adj = {c: set() for w in words for c in w}\n    for i in range(len(words)-1):\n        w1, w2 = words[i], words[i+1]\n        min_len = min(len(w1), len(w2))\n        if len(w1) > len(w2) and w1[:min_len] == w2[:min_len]: return ''\n        for j in range(min_len):\n            if w1[j] != w2[j]: adj[w1[j]].add(w2[j]); break\n    visited = {}; res = []\n    def dfs(c):\n        if c in visited: return visited[c]\n        visited[c] = True\n        for nei in adj[c]:\n            if dfs(nei): return True\n        visited[c] = False; res.append(c); return False\n    if any(dfs(c) for c in adj): return ''\n    return ''.join(reversed(res))"}, {"id": "nc73", "title": "Meeting Rooms", "diff": "easy", "pattern": "Intervals", "lc": 252, "desc": "Can a person attend all meetings (no overlapping intervals)?", "approach": "Sort by start time. Check if any meeting starts before previous ends.\n\ndef canAttendMeetings(intervals):\n    intervals.sort(key=lambda x: x[0])\n    for i in range(1, len(intervals)):\n        if intervals[i][0] < intervals[i-1][1]: return False\n    return True"}, {"id": "nc74", "title": "Meeting Rooms II", "diff": "medium", "pattern": "Intervals", "lc": 253, "desc": "Find minimum number of conference rooms required.", "approach": "Min-heap tracking end times. If new meeting starts after earliest end, reuse room.\n\nimport heapq\ndef minMeetingRooms(intervals):\n    intervals.sort(key=lambda x: x[0])\n    heap = []\n    for start, end in intervals:\n        if heap and heap[0] <= start: heapq.heappop(heap)\n        heapq.heappush(heap, end)\n    return len(heap)"}, {"id": "nc75", "title": "Reverse Linked List II", "diff": "medium", "pattern": "Linked List", "lc": 92, "desc": "Reverse a linked list from position left to right in one pass.", "approach": "Find node before 'left'. Three-pointer reversal within sublist.\n\ndef reverseBetween(head, left, right):\n    dummy = ListNode(0, head); prev = dummy\n    for _ in range(left - 1): prev = prev.next\n    curr = prev.next\n    for _ in range(right - left):\n        nxt = curr.next\n        curr.next = nxt.next\n        nxt.next = prev.next\n        prev.next = nxt\n    return dummy.next"}]}
 
-print(func(1))
-print(func(2))`,
-          options: [
-            { text: '<code>[1]</code> then <code>[1, 2]</code>', correct: true },
-            { text: '<code>[1]</code> then <code>[2]</code>', correct: false },
-            { text: '<code>[1]</code> then <code>[1]</code>', correct: false },
-            { text: 'Error - cannot use list as default argument', correct: false }
-          ],
-          explanation: 'Mutable default arguments (like lists) are created once when the function is defined, not on each call. This is a common Python gotcha. Use None as default and create the list inside the function.',
-          difficulty: 'hard'
-        },
-        {
-          id: 'py4',
-          text: 'Which list comprehension creates <code>[0, 2, 4, 6, 8]</code>?',
-          options: [
-            { text: '<code>[x for x in range(10) if x % 2 == 0]</code>', correct: true },
-            { text: '<code>[x for x in range(5) * 2]</code>', correct: false },
-            { text: '<code>[x * 2 for x in range(10)]</code>', correct: false },
-            { text: '<code>[x for x in range(0, 10, 2)]</code>', correct: true }
-          ],
-          explanation: 'Both [x for x in range(10) if x % 2 == 0] and [x for x in range(0, 10, 2)] produce the same result. The first filters even numbers, the second steps by 2.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'py5',
-          text: 'What is the difference between <code>is</code> and <code>==</code>?',
-          options: [
-            { text: '<code>is</code> checks identity (same object), <code>==</code> checks equality (same value)', correct: true },
-            { text: '<code>==</code> checks identity, <code>is</code> checks equality', correct: false },
-            { text: 'They are interchangeable for all types', correct: false },
-            { text: '<code>is</code> is only for None comparisons', correct: false }
-          ],
-          explanation: '`is` returns True if both variables point to the same object in memory. `==` returns True if the values are equal. Use `is` for None, True, False. Use `==` for value comparison.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'py6',
-          text: 'What is the output?',
-          code: `d = {'a': 1, 'b': 2}
-print(d.get('c', 0))`,
-          options: [
-            { text: '<code>0</code>', correct: true },
-            { text: '<code>None</code>', correct: false },
-            { text: 'KeyError', correct: false },
-            { text: '<code>\'c\'</code>', correct: false }
-          ],
-          explanation: 'dict.get(key, default) returns the value for key if it exists, otherwise returns the default value (0 in this case). Using d[\'c\'] would raise KeyError.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'py7',
-          text: 'What does this code print?',
-          code: `nums = [1, 2, 3, 4, 5]
-print(nums[1:4])
-print(nums[::2])
-print(nums[::-1])`,
-          options: [
-            { text: '<code>[2, 3, 4]</code>, <code>[1, 3, 5]</code>, <code>[5, 4, 3, 2, 1]</code>', correct: true },
-            { text: '<code>[1, 2, 3, 4]</code>, <code>[2, 4]</code>, <code>[5, 4, 3, 2, 1]</code>', correct: false },
-            { text: '<code>[2, 3, 4]</code>, <code>[2, 4]</code>, <code>[1, 2, 3, 4, 5]</code>', correct: false },
-            { text: '<code>[1, 2, 3]</code>, <code>[1, 3, 5]</code>, <code>[5, 4, 3, 2, 1]</code>', correct: false }
-          ],
-          explanation: '[1:4] = index 1 to 3 (end exclusive). [::2] = every 2nd element starting from 0. [::-1] = reverse the list (step of -1).',
-          difficulty: 'medium'
-        },
-        {
-          id: 'py8',
-          text: 'What is the output?',
-          code: `s = {1, 2, 3}
-s.add(2)
-s.add(4)
-print(len(s))`,
-          options: [
-            { text: '<code>4</code>', correct: true },
-            { text: '<code>5</code>', correct: false },
-            { text: '<code>3</code>', correct: false },
-            { text: 'Error - sets don\'t have add method', correct: false }
-          ],
-          explanation: 'Sets contain unique elements only. Adding 2 again has no effect since it already exists. Adding 4 increases the size. Final set is {1, 2, 3, 4}.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'py9',
-          text: 'What does <code>lambda x, y: x + y</code> do?',
-          options: [
-            { text: 'Creates an anonymous function that returns the sum of two arguments', correct: true },
-            { text: 'Creates a named function called lambda', correct: false },
-            { text: 'Returns a tuple (x, y)', correct: false },
-            { text: 'Is invalid Python syntax', correct: false }
-          ],
-          explanation: 'Lambda creates small anonymous functions. `lambda x, y: x + y` is equivalent to `def f(x, y): return x + y`. Useful for short operations in map(), filter(), sorted().',
-          difficulty: 'easy'
-        },
-        {
-          id: 'py10',
-          text: 'What is the output?',
-          code: `try:
-    x = 1 / 0
-except ZeroDivisionError:
-    print("A")
-except Exception:
-    print("B")
-finally:
-    print("C")`,
-          options: [
-            { text: '<code>A</code> then <code>C</code>', correct: true },
-            { text: '<code>B</code> then <code>C</code>', correct: false },
-            { text: 'Just <code>A</code>', correct: false },
-            { text: 'Just <code>C</code>', correct: false }
-          ],
-          explanation: 'ZeroDivisionError is caught by the first except block (prints A). finally always executes regardless of exceptions (prints C). More specific exceptions should come before general Exception.',
-          difficulty: 'medium'
-        }
-      ],
-      git: [
-        {
-          id: 'git1',
-          text: 'What is the difference between <code>git pull</code> and <code>git fetch</code>?',
-          options: [
-            { text: '<code>git fetch</code> downloads changes but doesn\'t merge; <code>git pull</code> fetches and merges', correct: true },
-            { text: '<code>git pull</code> downloads changes but doesn\'t merge; <code>git fetch</code> fetches and merges', correct: false },
-            { text: 'They are identical commands', correct: false },
-            { text: '<code>git fetch</code> only works with tags', correct: false }
-          ],
-          explanation: 'git fetch downloads commits, files, and refs from remote without modifying your working directory. git pull is essentially git fetch followed by git merge. Use fetch when you want to review changes before merging.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'git2',
-          text: 'What does <code>git rebase main</code> do when on a feature branch?',
-          options: [
-            { text: 'Moves your feature branch commits on top of the latest main branch commits', correct: true },
-            { text: 'Merges main into feature with a merge commit', correct: false },
-            { text: 'Deletes the feature branch', correct: false },
-            { text: 'Creates a backup of the feature branch', correct: false }
-          ],
-          explanation: 'Rebase rewrites history by replaying your commits on top of another branch. This creates a linear history but should not be used on shared branches as it changes commit hashes.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'git3',
-          text: 'How do you undo the last commit while keeping changes staged?',
-          options: [
-            { text: '<code>git reset --soft HEAD~1</code>', correct: true },
-            { text: '<code>git reset --hard HEAD~1</code>', correct: false },
-            { text: '<code>git revert HEAD</code>', correct: false },
-            { text: '<code>git checkout HEAD~1</code>', correct: false }
-          ],
-          explanation: '--soft keeps changes staged. --mixed (default) unstages changes but keeps them in working directory. --hard discards all changes. revert creates a new commit that undoes changes.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'git4',
-          text: 'What does <code>git stash</code> do?',
-          options: [
-            { text: 'Temporarily saves uncommitted changes and reverts to clean working directory', correct: true },
-            { text: 'Permanently deletes uncommitted changes', correct: false },
-            { text: 'Creates a new branch with current changes', correct: false },
-            { text: 'Commits changes with message "stash"', correct: false }
-          ],
-          explanation: 'git stash saves your local modifications away and reverts to HEAD. Use git stash pop to restore changes later. Useful when you need to switch branches but aren\'t ready to commit.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'git5',
-          text: 'What is the difference between <code>git reset</code> and <code>git revert</code>?',
-          options: [
-            { text: '<code>reset</code> rewrites history by moving HEAD; <code>revert</code> creates a new commit undoing changes', correct: true },
-            { text: '<code>revert</code> rewrites history; <code>reset</code> creates a new commit', correct: false },
-            { text: 'Both commands are identical', correct: false },
-            { text: '<code>reset</code> only works on staged files', correct: false }
-          ],
-          explanation: 'Reset moves HEAD and can modify history (dangerous on shared branches). Revert creates a new commit that undoes a previous commit\'s changes (safe for shared branches).',
-          difficulty: 'medium'
-        },
-        {
-          id: 'git6',
-          text: 'Which command shows the commit history as a graph?',
-          options: [
-            { text: '<code>git log --graph --oneline</code>', correct: true },
-            { text: '<code>git status --graph</code>', correct: false },
-            { text: '<code>git show --tree</code>', correct: false },
-            { text: '<code>git branch --visual</code>', correct: false }
-          ],
-          explanation: 'git log --graph draws a text-based graph of commits. --oneline shows each commit on one line. Add --all to see all branches.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'git7',
-          text: 'What does <code>git cherry-pick &lt;commit-hash&gt;</code> do?',
-          options: [
-            { text: 'Applies a specific commit from another branch to current branch', correct: true },
-            { text: 'Removes a specific commit from history', correct: false },
-            { text: 'Merges all commits from another branch', correct: false },
-            { text: 'Creates a tag at the specified commit', correct: false }
-          ],
-          explanation: 'Cherry-pick takes a single commit from anywhere in the repository and applies it to the current branch. Useful for applying specific fixes without merging entire branches.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'git8',
-          text: 'How do you rename a local branch you\'re currently on?',
-          options: [
-            { text: '<code>git branch -m new-name</code>', correct: true },
-            { text: '<code>git rename branch new-name</code>', correct: false },
-            { text: '<code>git checkout -b new-name && git branch -d old-name</code>', correct: false },
-            { text: '<code>git mv branch new-name</code>', correct: false }
-          ],
-          explanation: 'git branch -m new-name renames the current branch. To rename a branch you\'re not on: git branch -m old-name new-name.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'git9',
-          text: 'What happens during a merge conflict?',
-          options: [
-            { text: 'Git marks conflicting sections in files and waits for manual resolution', correct: true },
-            { text: 'Git automatically chooses the newer changes', correct: false },
-            { text: 'The merge is automatically aborted', correct: false },
-            { text: 'Git creates two separate branches', correct: false }
-          ],
-          explanation: 'Git inserts conflict markers (<<<<<<<, =======, >>>>>>>) showing both versions. You must edit the file to resolve conflicts, then stage and commit. Use git merge --abort to cancel.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'git10',
-          text: 'What does <code>git remote -v</code> show?',
-          options: [
-            { text: 'Lists all remote repositories with their URLs', correct: true },
-            { text: 'Shows verbose git version information', correct: false },
-            { text: 'Verifies remote connection', correct: false },
-            { text: 'Lists all local branches', correct: false }
-          ],
-          explanation: 'git remote -v displays the shortnames (like origin) and corresponding URLs for fetch and push. Use git remote add to add new remotes.',
-          difficulty: 'easy'
-        }
-      ],
-      java: [
-        {
-          id: 'java1',
-          text: 'What is the output?',
-          code: `String s1 = "Hello";
-String s2 = "Hello";
-String s3 = new String("Hello");
-System.out.println(s1 == s2);
-System.out.println(s1 == s3);`,
-          options: [
-            { text: '<code>true</code> then <code>false</code>', correct: true },
-            { text: '<code>true</code> then <code>true</code>', correct: false },
-            { text: '<code>false</code> then <code>false</code>', correct: false },
-            { text: '<code>false</code> then <code>true</code>', correct: false }
-          ],
-          explanation: 'String literals are interned (pooled), so s1 and s2 reference the same object. new String() creates a new object on the heap. Use .equals() for value comparison.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'java2',
-          text: 'Which access modifier allows access only within the same package and subclasses?',
-          options: [
-            { text: '<code>protected</code>', correct: true },
-            { text: '<code>private</code>', correct: false },
-            { text: '<code>public</code>', correct: false },
-            { text: '<code>default</code> (no modifier)', correct: false }
-          ],
-          explanation: 'protected: same package + subclasses. private: same class only. public: everywhere. default (package-private): same package only.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'java3',
-          text: 'What is method overloading?',
-          options: [
-            { text: 'Defining multiple methods with the same name but different parameters', correct: true },
-            { text: 'Redefining a parent class method in a child class', correct: false },
-            { text: 'Making a method run faster', correct: false },
-            { text: 'Calling a method multiple times', correct: false }
-          ],
-          explanation: 'Overloading: same method name, different parameters (compile-time polymorphism). Overriding: redefining inherited method with same signature (runtime polymorphism).',
-          difficulty: 'easy'
-        },
-        {
-          id: 'java4',
-          text: 'What is the output?',
-          code: `int[] arr = {1, 2, 3};
-System.out.println(arr.length);
+</script>
 
-ArrayList<Integer> list = new ArrayList<>();
-list.add(1); list.add(2); list.add(3);
-System.out.println(list.size());`,
-          options: [
-            { text: '<code>3</code> then <code>3</code>', correct: true },
-            { text: '<code>3</code> then <code>3</code> but length() for ArrayList', correct: false },
-            { text: 'Error - arrays don\'t have length', correct: false },
-            { text: '<code>2</code> then <code>3</code>', correct: false }
-          ],
-          explanation: 'Arrays use .length (property, no parentheses). ArrayList uses .size() (method). Both return the number of elements.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'java5',
-          text: 'What does the <code>final</code> keyword do when applied to a variable?',
-          options: [
-            { text: 'Makes the variable\'s value unchangeable after initialization', correct: true },
-            { text: 'Makes the variable static', correct: false },
-            { text: 'Makes the variable private', correct: false },
-            { text: 'Deletes the variable after use', correct: false }
-          ],
-          explanation: 'final variable: constant value. final method: cannot be overridden. final class: cannot be extended. For objects, final means the reference can\'t change but object contents can.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'java6',
-          text: 'What is the difference between an interface and an abstract class?',
-          options: [
-            { text: 'A class can implement multiple interfaces but extend only one abstract class', correct: true },
-            { text: 'Interfaces can have constructors, abstract classes cannot', correct: false },
-            { text: 'Abstract classes cannot have any implemented methods', correct: false },
-            { text: 'They are identical in functionality', correct: false }
-          ],
-          explanation: 'Interfaces: multiple inheritance, no constructors, all methods public. Abstract classes: single inheritance, can have constructors and any access level. Since Java 8, interfaces can have default methods.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'java7',
-          text: 'What exception is thrown when accessing an invalid array index?',
-          options: [
-            { text: '<code>ArrayIndexOutOfBoundsException</code>', correct: true },
-            { text: '<code>IndexOutOfBoundsException</code>', correct: false },
-            { text: '<code>NullPointerException</code>', correct: false },
-            { text: '<code>IllegalArgumentException</code>', correct: false }
-          ],
-          explanation: 'ArrayIndexOutOfBoundsException is thrown for arrays. IndexOutOfBoundsException is the parent class also used by List implementations. Always check bounds or use enhanced for-loop.',
-          difficulty: 'easy'
-        },
-        {
-          id: 'java8',
-          text: 'What is the output?',
-          code: `Integer a = 127;
-Integer b = 127;
-Integer c = 128;
-Integer d = 128;
-System.out.println(a == b);
-System.out.println(c == d);`,
-          options: [
-            { text: '<code>true</code> then <code>false</code>', correct: true },
-            { text: '<code>true</code> then <code>true</code>', correct: false },
-            { text: '<code>false</code> then <code>false</code>', correct: false },
-            { text: '<code>false</code> then <code>true</code>', correct: false }
-          ],
-          explanation: 'Java caches Integer objects from -128 to 127 (Integer pool). Within this range, == returns true. Outside, new objects are created. Always use .equals() for object comparison.',
-          difficulty: 'hard'
-        },
-        {
-          id: 'java9',
-          text: 'What does <code>HashMap</code> allow that <code>Hashtable</code> does not?',
-          options: [
-            { text: 'Null keys and null values', correct: true },
-            { text: 'Thread safety', correct: false },
-            { text: 'Ordered iteration', correct: false },
-            { text: 'Primitive type keys', correct: false }
-          ],
-          explanation: 'HashMap allows one null key and multiple null values, is not synchronized. Hashtable doesn\'t allow nulls, is synchronized (thread-safe but slower). For ordered maps, use LinkedHashMap.',
-          difficulty: 'medium'
-        },
-        {
-          id: 'java10',
-          text: 'What is the output?',
-          code: `class Parent {
-    void show() { System.out.print("Parent "); }
+<script>
+// Load data from JSON block - zero escaping issues
+const RAW = JSON.parse(document.getElementById('data-json').textContent);
+const QUESTIONS = RAW.questions;
+const NEETCODE = RAW.neetcode;
+const NC_PATTERNS = ['all','Arrays & Hashing','Two Pointers','Sliding Window','Stack','Binary Search','Linked List','Trees','Dynamic Programming','Graphs','Heap','Backtracking','Trie','Intervals','Bit Manipulation','Math / Matrix','String'];
+const TOPIC_LABELS = {sql:'SQL',python:'Python 3',git:'Git',java:'Java'};
+
+let state = {
+  page:'sql', idx:0, answered:{}, ncSolved:{}, ncFilter:'all', ncSearch:'',
+  openCard:null, timerOn:false, timeLeft:3600, timerInterval:null,
+  stats:{done:0,correct:0,wrong:0}
+};
+
+function loadState(){
+  const s = localStorage.getItem('tfprep_v3');
+  if(s){const d=JSON.parse(s);state.answered=d.answered||{};state.ncSolved=d.ncSolved||{};state.stats=d.stats||{done:0,correct:0,wrong:0};updateStats();}
 }
-class Child extends Parent {
-    void show() { System.out.print("Child "); }
+function saveState(){localStorage.setItem('tfprep_v3',JSON.stringify({answered:state.answered,ncSolved:state.ncSolved,stats:state.stats}));}
+function updateStats(){
+  document.getElementById('s-done').textContent=state.stats.done;
+  document.getElementById('s-correct').textContent=state.stats.correct;
+  document.getElementById('s-wrong').textContent=state.stats.wrong;
+  const acc=state.stats.done>0?Math.round(state.stats.correct/state.stats.done*100):0;
+  document.getElementById('s-acc').textContent=state.stats.done>0?acc+'%':'—';
+  document.getElementById('acc-fill').style.width=acc+'%';
+  const solved=Object.values(state.ncSolved).filter(Boolean).length;
+  document.getElementById('cnt-neetcode').textContent=solved+'/75';
 }
-Parent obj = new Child();
-obj.show();`,
-          options: [
-            { text: '<code>Child</code>', correct: true },
-            { text: '<code>Parent</code>', correct: false },
-            { text: '<code>Parent Child</code>', correct: false },
-            { text: 'Compilation error', correct: false }
-          ],
-          explanation: 'This is runtime polymorphism. The reference type is Parent but the actual object is Child. Java calls the overridden method based on the actual object type at runtime.',
-          difficulty: 'medium'
+function nav(page){
+  state.page=page;state.idx=0;
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  document.getElementById('nav-'+page).classList.add('active');
+  render();
+}
+function render(){
+  if(state.page==='neetcode'){renderNC();return;}
+  if(state.page==='coding'){renderDrill();return;}
+  renderMCQ();
+}
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+
+// ── MCQ ──────────────────────────────────────────────────────────────────────
+// Per-question timer state
+let qt = { on:false, left:0, total:0, interval:null, startTs:0 };
+const QT_LIMITS = { easy:45, medium:90, hard:120 };  // MCQ limits (seconds)
+const QT_LIMITS_CODING = { easy:600, medium:1200, hard:1800 };  // Coding limits (seconds)
+function qtLimits() {
+  return state.page === 'coding' ? QT_LIMITS_CODING : QT_LIMITS;
+}
+
+function qtStart(q) {
+  if(!qt.on) return;
+  qtStop();
+  qt.total = qtLimits()[q.diff] || 60;
+  qt.left = qt.total;
+  qt.startTs = Date.now();
+  qtUpdateBar();
+  qt.interval = setInterval(() => {
+    qt.left--;
+    qtUpdateBar();
+    if(qt.left <= 0) {
+      qtStop();
+      if(state.page === 'coding') {
+        const cq = QUESTIONS.coding[state.idx];
+        if(!state.answered['d_'+cq.id]) {
+          state.answered['d_'+cq.id] = { correct:false, timeout:true };
+          state.stats.done++; state.stats.wrong++;
+          saveState(); updateStats(); renderDrill();
         }
-      ],
-      coding: [
-        {
-          id: 'code1',
-          text: 'Write a function that returns the sum of all even numbers in a list.',
-          starterCode: `def sum_even(numbers):
-    # Your code here
-    pass
-
-# Test cases:
-# sum_even([1, 2, 3, 4, 5, 6]) should return 12
-# sum_even([1, 3, 5]) should return 0
-# sum_even([]) should return 0`,
-          testCases: [
-            { input: [1, 2, 3, 4, 5, 6], expected: 12 },
-            { input: [1, 3, 5], expected: 0 },
-            { input: [], expected: 0 },
-            { input: [2, 4, 6, 8], expected: 20 }
-          ],
-          difficulty: 'easy',
-          hint: 'Use a loop or list comprehension with the modulo operator (%) to check if a number is even.'
-        },
-        {
-          id: 'code2',
-          text: 'Write a function that finds the first non-repeating character in a string. Return the character or None if all repeat.',
-          starterCode: `def first_unique_char(s):
-    # Your code here
-    pass
-
-# Test cases:
-# first_unique_char("leetcode") should return "l"
-# first_unique_char("aabb") should return None
-# first_unique_char("abcab") should return "c"`,
-          testCases: [
-            { input: "leetcode", expected: "l" },
-            { input: "aabb", expected: null },
-            { input: "abcab", expected: "c" },
-            { input: "a", expected: "a" }
-          ],
-          difficulty: 'medium',
-          hint: 'Use a dictionary to count character frequencies, then iterate through the string to find the first character with count 1.'
-        },
-        {
-          id: 'code3',
-          text: 'Write a function that returns the two indices of numbers in a list that add up to a target. Assume exactly one solution exists.',
-          starterCode: `def two_sum(nums, target):
-    # Your code here
-    pass
-
-# Test cases:
-# two_sum([2, 7, 11, 15], 9) should return [0, 1]
-# two_sum([3, 2, 4], 6) should return [1, 2]
-# two_sum([3, 3], 6) should return [0, 1]`,
-          testCases: [
-            { input: [[2, 7, 11, 15], 9], expected: [0, 1] },
-            { input: [[3, 2, 4], 6], expected: [1, 2] },
-            { input: [[3, 3], 6], expected: [0, 1] }
-          ],
-          difficulty: 'medium',
-          hint: 'Use a dictionary to store numbers and their indices as you iterate. For each number, check if (target - number) exists in the dictionary.'
-        },
-        {
-          id: 'code4',
-          text: 'Write a function that checks if a string is a palindrome (ignoring case and non-alphanumeric characters).',
-          starterCode: `def is_palindrome(s):
-    # Your code here
-    pass
-
-# Test cases:
-# is_palindrome("A man, a plan, a canal: Panama") should return True
-# is_palindrome("race a car") should return False
-# is_palindrome("") should return True`,
-          testCases: [
-            { input: "A man, a plan, a canal: Panama", expected: true },
-            { input: "race a car", expected: false },
-            { input: "", expected: true },
-            { input: "Was it a car or a cat I saw", expected: true }
-          ],
-          difficulty: 'easy',
-          hint: 'Clean the string first (lowercase, alphanumeric only), then compare it to its reverse.'
-        },
-        {
-          id: 'code5',
-          text: 'Write a function that returns the longest common prefix among a list of strings.',
-          starterCode: `def longest_common_prefix(strs):
-    # Your code here
-    pass
-
-# Test cases:
-# longest_common_prefix(["flower", "flow", "flight"]) should return "fl"
-# longest_common_prefix(["dog", "racecar", "car"]) should return ""
-# longest_common_prefix(["interspecies", "interstellar"]) should return "inters"`,
-          testCases: [
-            { input: [["flower", "flow", "flight"]], expected: "fl" },
-            { input: [["dog", "racecar", "car"]], expected: "" },
-            { input: [["interspecies", "interstellar", "interstate"]], expected: "inters" },
-            { input: [[""]], expected: "" }
-          ],
-          difficulty: 'medium',
-          hint: 'Compare characters at each position across all strings. Stop when characters differ or you reach the end of the shortest string.'
+      } else {
+        // MCQ auto-mark as timeout
+        const mq = QUESTIONS[state.page][state.idx];
+        if(!state.answered[mq.id]) {
+          state.answered[mq.id] = { sel:-1, correct:false, timeout:true };
+          state.stats.done++; state.stats.wrong++;
+          saveState(); updateStats(); render();
         }
-      ]
-    };
-
-    let currentCategory = 'sql';
-    let currentIndex = 0;
-    let mode = 'practice';
-    let timerInterval = null;
-    let timeLeft = 3600;
-    let stats = {
-      done: 0,
-      correct: 0,
-      wrong: 0,
-      answered: {}
-    };
-
-    function loadStats() {
-      const saved = localStorage.getItem('trafigura_prep_stats');
-      if (saved) {
-        stats = JSON.parse(saved);
-        updateStatsDisplay();
       }
     }
+  }, 1000);
+}
+function qtStop() {
+  if(qt.interval) { clearInterval(qt.interval); qt.interval=null; }
+}
+function qtUpdateBar() {
+  const bar = document.getElementById('qtBar');
+  const time = document.getElementById('qtTime');
+  if(!bar||!time) return;
+  const pct = Math.max(0, (qt.left / qt.total) * 100);
+  bar.style.width = pct + '%';
+  const color = qt.left <= qt.total*0.1 ? 'var(--dan)' : qt.left <= qt.total*0.3 ? 'var(--warn)' : 'var(--acc)';
+  bar.style.background = color;
+  // show mm:ss for coding, plain seconds for MCQ
+  if(state.page === 'coding') {
+    const m = Math.floor(qt.left/60).toString().padStart(2,'0');
+    const s = (qt.left%60).toString().padStart(2,'0');
+    time.textContent = m+':'+s;
+  } else {
+    time.textContent = qt.left + 's';
+  }
+  time.className = 'qt-time' + (qt.left<=qt.total*0.1?' crit': qt.left<=qt.total*0.3?' warn':'');
+}
+function qtToggle() {
+  qt.on = !qt.on;
+  const qs = state.page==='coding' ? QUESTIONS.coding : QUESTIONS[state.page];
+  const q = qs[state.idx];
+  if(qt.on && !state.answered[q.id] && !state.answered['d_'+q.id]) qtStart(q);
+  else qtStop();
+  render();
+}
 
-    function saveStats() {
-      localStorage.setItem('trafigura_prep_stats', JSON.stringify(stats));
-    }
+function renderMCQ(){
+  const qs=QUESTIONS[state.page], q=qs[state.idx];
+  const pct=Math.round((state.idx+1)/qs.length*100);
+  const ans=state.answered[q.id];
+  const lbl=['A','B','C','D'];
+  const timer=state.timerOn?`<div class="timer-el${state.timeLeft<300?' warn':''}" id="timerEl">${fmt(state.timeLeft)}</div>`:'';
+  
+  // time taken badge
+  let splitBadge = '';
+  if(ans && ans.timeTaken !== undefined) {
+    const limit = QT_LIMITS[q.diff];
+    const cls = ans.timeTaken <= limit*0.6 ? 'fast' : ans.timeTaken > limit ? 'slow' : '';
+    splitBadge = `<span class="qt-split ${cls}">${ans.timeTaken}s</span>`;
+  } else if(ans && ans.timeout) {
+    splitBadge = `<span class="qt-expired">⏱ timed out</span>`;
+  }
 
-    function updateStatsDisplay() {
-      document.getElementById('totalDone').textContent = stats.done;
-      document.getElementById('totalCorrect').textContent = stats.correct;
-      document.getElementById('totalWrong').textContent = stats.wrong;
-      const accuracy = stats.done > 0 ? Math.round((stats.correct / stats.done) * 100) : 0;
-      document.getElementById('accuracy').textContent = accuracy + '%';
-    }
+  // per-q timer — always show full clock widget
+  const mcqLimit = QT_LIMITS[q.diff] || 60;
+  const mcqDisplayTime = qt.on && qt.left ? qt.left+'s' : mcqLimit+'s';
+  const mcqBarPct = qt.on && qt.left ? Math.max(0,(qt.left/mcqLimit)*100) : 100;
+  const mcqBarColor = (qt.on && qt.left <= mcqLimit*0.1) ? 'var(--dan)' : (qt.on && qt.left <= mcqLimit*0.3) ? 'var(--warn)' : 'var(--acc)';
 
-    function renderTabs() {
-      const tabs = document.getElementById('tabs');
-      const categories = [
-        { key: 'sql', label: 'SQL', count: questions.sql.length },
-        { key: 'python', label: 'Python', count: questions.python.length },
-        { key: 'git', label: 'Git', count: questions.git.length },
-        { key: 'java', label: 'Java', count: questions.java.length },
-        { key: 'coding', label: 'Coding', count: questions.coding.length }
-      ];
-      
-      tabs.innerHTML = categories.map(cat => `
-        <button class="tab ${currentCategory === cat.key ? 'active' : ''}" onclick="switchCategory('${cat.key}')">
-          ${cat.label}<span class="count">${cat.count}</span>
-        </button>
-      `).join('');
-    }
-
-    function switchCategory(cat) {
-      currentCategory = cat;
-      currentIndex = 0;
-      renderTabs();
-      renderQuestion();
-    }
-
-    function renderQuestion() {
-      const area = document.getElementById('questionArea');
-      const questionList = questions[currentCategory];
-      const q = questionList[currentIndex];
-      
-      const progress = ((currentIndex + 1) / questionList.length) * 100;
-      document.getElementById('progressFill').style.width = progress + '%';
-
-      const isAnswered = stats.answered[q.id];
-
-      if (currentCategory === 'coding') {
-        area.innerHTML = `
-          <div class="question-card">
-            <div class="question-header">
-              <span class="question-num">Question ${currentIndex + 1} of ${questionList.length}</span>
-              <span class="difficulty ${q.difficulty}">${q.difficulty}</span>
-            </div>
-            <p class="question-text">${q.text}</p>
-            <div class="coding-section">
-              <textarea class="code-editor" id="codeEditor">${q.starterCode}</textarea>
-              <p style="font-size: 13px; color: #888; margin-top: 8px;">💡 Hint: ${q.hint}</p>
-              <div class="btn-row">
-                <button class="btn btn-primary" onclick="runTests()">Run Tests</button>
-                <button class="btn btn-secondary" onclick="resetCode()">Reset Code</button>
-              </div>
-              <div class="test-results" id="testResults"></div>
-            </div>
-            <div class="btn-row" style="margin-top: 24px;">
-              <button class="btn btn-secondary" onclick="prevQuestion()" ${currentIndex === 0 ? 'disabled' : ''}>← Previous</button>
-              <button class="btn btn-primary" onclick="nextQuestion()" ${currentIndex === questionList.length - 1 ? 'disabled' : ''}>Next →</button>
-            </div>
+  const qtRow = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surf2);border-radius:5px;border:1px solid var(--bdr);margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div>
+          <div style="font-size:9px;color:var(--mut);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Per question</div>
+          <span style="font-size:22px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:${(qt.on&&qt.left<=mcqLimit*0.1)?'var(--dan)':(qt.on&&qt.left<=mcqLimit*0.3)?'var(--warn)':'var(--acc)'}" id="qtTime">${mcqDisplayTime}</span>
+        </div>
+        <div style="width:100px">
+          <div style="height:3px;background:var(--bdr);border-radius:2px;overflow:hidden">
+            <div id="qtBar" style="height:3px;width:${mcqBarPct}%;background:${mcqBarColor};border-radius:2px;transition:width 1s linear,background .5s"></div>
           </div>
-        `;
-      } else {
-        area.innerHTML = `
-          <div class="question-card">
-            <div class="question-header">
-              <span class="question-num">Question ${currentIndex + 1} of ${questionList.length}</span>
-              <span class="difficulty ${q.difficulty}">${q.difficulty}</span>
-            </div>
-            <p class="question-text">${q.text}</p>
-            ${q.code ? `<div class="code-block">${escapeHtml(q.code)}</div>` : ''}
-            <div class="options" id="options">
-              ${q.options.map((opt, i) => `
-                <div class="option ${isAnswered ? (opt.correct ? 'correct' : (isAnswered.selected === i && !opt.correct ? 'wrong' : '')) : ''} ${isAnswered ? 'disabled' : ''}" 
-                     onclick="${isAnswered ? '' : `selectOption(${i}, ${opt.correct})`}">
-                  <span class="option-letter">${String.fromCharCode(65 + i)}</span>
-                  <span class="option-text">${opt.text}</span>
-                </div>
-              `).join('')}
-            </div>
-            ${isAnswered ? `
-              <div class="explanation">
-                <div class="explanation-title">Explanation</div>
-                <div class="explanation-text">${q.explanation}</div>
-              </div>
-            ` : ''}
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevQuestion()" ${currentIndex === 0 ? 'disabled' : ''}>← Previous</button>
-              <button class="btn btn-primary" onclick="nextQuestion()" ${currentIndex === questionList.length - 1 ? 'disabled' : ''}>Next →</button>
-            </div>
+          <div style="font-size:9px;color:var(--mut);font-family:'IBM Plex Mono',monospace;margin-top:3px">limit: ${mcqLimit}s · ${q.diff}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${ans && ans.timeTaken !== undefined ? `<span class="qt-split ${ans.timeTaken<=mcqLimit*0.6?'fast':ans.timeTaken>mcqLimit?'slow':''}">${ans.timeTaken}s taken</span>` : ''}
+        ${ans && ans.timeout ? '<span class="qt-expired">⏱ timed out</span>' : ''}
+        ${!ans ? `<button class="qt-toggle${qt.on?' on':''}" onclick="qtToggle()" style="padding:5px 14px">${qt.on?'⏸ Pause':'▶ Start'}</button>` : ''}
+      </div>
+    </div>`;
+
+  document.getElementById('mainArea').innerHTML=`
+    <div class="hdr-row pg-hdr">
+      <div><h2>${TOPIC_LABELS[state.page]} — MCQ Practice</h2><p>Assessment-style questions with instant explanations</p></div>
+      <div style="text-align:right">${timer}<div class="mode-btns"><button class="mode-btn${!state.timerOn?' active':''}" onclick="setTimer(false)">Practice</button><button class="mode-btn${state.timerOn?' active':''}" onclick="setTimer(true)">Timed 60min</button></div></div>
+    </div>
+    <div class="prog-row"><div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div><span class="prog-lbl">${state.idx+1}/${qs.length}</span></div>
+    <div class="q-card">
+      <div class="q-hdr"><span class="q-num">Q${state.idx+1}</span><span class="dbadge ${q.diff}">${q.diff}</span><span class="topic-badge">${TOPIC_LABELS[state.page]}</span></div>
+      ${qtRow}
+      <div class="q-txt">${q.text}</div>
+      ${q.code?`<div class="code-blk">${esc(q.code)}</div>`:''}
+      <div class="opts">${q.opts.map((o,i)=>{
+        let c='';
+        if(ans){if(i===q.ans)c='correct reveal';else if(i===ans.sel&&i!==q.ans)c='wrong';c+=' locked';}
+        return `<div class="opt ${c}" onclick="${ans?'':'pick('+i+')'}">${'<div class="opt-key">'+lbl[i]+'</div>'}<div class="opt-txt">${o}</div></div>`;
+      }).join('')}</div>
+      ${ans?`<div class="exp"><div class="exp-title">Explanation</div><div class="exp-txt">${q.exp}</div></div>`:''}
+      <div class="nav-row">
+        <button class="btn" onclick="prevQ()" ${state.idx===0?'disabled':''}>← Prev</button>
+        <button class="btn primary" onclick="nextQ()" ${state.idx===qs.length-1?'disabled':''}>Next →</button>
+      </div>
+    </div>`;
+  
+  // kick off timer after render
+  if(qt.on && !ans) {
+    if(!qt.interval) qtStart(q);
+    else qtUpdateBar();
+  }
+}
+function pick(sel){
+  const q=QUESTIONS[state.page][state.idx];
+  if(state.answered[q.id])return;
+  const ok=sel===q.ans;
+  const timeTaken = qt.on && qt.startTs ? Math.round((Date.now()-qt.startTs)/1000) : undefined;
+  qtStop();
+  state.answered[q.id]={sel,correct:ok,timeTaken};
+  state.stats.done++;ok?state.stats.correct++:state.stats.wrong++;
+  saveState();updateStats();render();
+}
+function prevQ(){
+  qtStop(); qt.interval=null; qt.left=0;
+  if(state.idx>0){state.idx--;render();}
+}
+function nextQ(){
+  qtStop(); qt.interval=null; qt.left=0;
+  if(state.idx<QUESTIONS[state.page].length-1){state.idx++;render();}
+}
+
+// ── NEETCODE ─────────────────────────────────────────────────────────────────
+function renderNC(){
+  const solved=Object.values(state.ncSolved).filter(Boolean).length;
+  const filtered=NEETCODE.filter(p=>{
+    const pm=state.ncFilter==='all'||p.pattern===state.ncFilter;
+    const sm=!state.ncSearch||p.title.toLowerCase().includes(state.ncSearch.toLowerCase());
+    return pm&&sm;
+  });
+  document.getElementById('mainArea').innerHTML=`
+    <div class="pg-hdr"><h2>NeetCode Blind 75</h2><p>All 75 problems with Python approach — click any card to expand and study</p></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--mut)">Progress:</div>
+      <div class="prog-track" style="flex:1;max-width:280px"><div class="prog-fill" style="width:${Math.round(solved/75*100)}%"></div></div>
+      <span style="font-size:11px;color:var(--acc);font-family:'IBM Plex Mono',monospace">${solved}/75</span>
+    </div>
+    <div class="filter-row">
+      <input type="text" class="srch" placeholder="Search problems..." oninput="ncSearch(this.value)" value="${state.ncSearch}">
+      ${NC_PATTERNS.map(p=>`<button class="f-btn${state.ncFilter===p?' active':''}" onclick="ncFilter('${p}')">${p==='all'?'All':p}</button>`).join('')}
+    </div>
+    <div class="nc-grid">${filtered.map(p=>ncCard(p)).join('')}</div>`;
+}
+function ncCard(p){
+  const sol=state.ncSolved[p.id];
+  const open=state.openCard===p.id;
+  return `<div class="nc-card${open?' open':''}" id="ncc-${p.id}">
+    <div onclick="toggleNC('${p.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="nc-title">${p.title}</div>
+        <span class="nc-lc">#${p.lc}</span>
+      </div>
+      <div class="nc-meta">
+        <span class="dbadge ${p.diff}" style="font-size:8px;padding:1px 5px">${p.diff}</span>
+        <span class="nc-pat">${p.pattern}</span>
+        ${sol?'<span class="nc-solved-badge">✓ solved</span>':''}
+      </div>
+    </div>
+    <div class="nc-detail">
+      <div class="nc-desc">${p.desc}</div>
+      <div class="nc-approach">${esc(p.approach)}</div>
+      <div class="nc-actions">
+        <a href="https://leetcode.com/problems/${p.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'/')||'/'}" target="_blank" class="nc-link">↗ LeetCode</a>
+        <button class="btn${sol?'':' primary'}" style="padding:4px 12px;font-size:10px" onclick="toggleSolved('${p.id}')">${sol?'✓ Solved':'Mark Solved'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function toggleNC(id){state.openCard=state.openCard===id?null:id;renderNC();}
+function toggleSolved(id){state.ncSolved[id]=!state.ncSolved[id];saveState();updateStats();renderNC();}
+function ncFilter(f){state.ncFilter=f;renderNC();}
+function ncSearch(v){state.ncSearch=v;renderNC();}
+
+// ── CODING DRILLS ────────────────────────────────────────────────────────────
+function renderDrill(){
+  const qs=QUESTIONS.coding, q=qs[state.idx];
+  const pct=Math.round((state.idx+1)/qs.length*100);
+  const starter=q.starter.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$');
+  const done = state.answered['d_'+q.id];
+  const limit = QT_LIMITS_CODING[q.diff];
+  const limitLabel = q.diff==='easy' ? '10 min' : q.diff==='medium' ? '20 min' : '30 min';
+
+  // time taken badge for coding
+  let splitBadge = '';
+  if(done && done.timeTaken !== undefined) {
+    const m = Math.floor(done.timeTaken/60), s = done.timeTaken%60;
+    const timeStr = m>0 ? m+'m '+s+'s' : s+'s';
+    const cls = done.timeTaken <= limit*0.5 ? 'fast' : done.timeTaken > limit*0.8 ? 'slow' : '';
+    splitBadge = `<span class="qt-split ${cls}">${timeStr}</span>`;
+  } else if(done && done.timeout) {
+    splitBadge = `<span class="qt-expired">⏱ timed out</span>`;
+  }
+
+  // per-q timer row
+  const codingLimitSec = QT_LIMITS_CODING[q.diff] || 600;
+  const initMmSs = q.diff==='easy'?'10:00':q.diff==='medium'?'20:00':'30:00';
+  const codingTimeStr = qt.on && qt.left
+    ? (Math.floor(qt.left/60).toString().padStart(2,'0')+':'+(qt.left%60).toString().padStart(2,'0'))
+    : initMmSs;
+  const codingBarPct = qt.on && qt.left ? Math.max(0,(qt.left/codingLimitSec)*100) : 100;
+  const codingBarColor = (qt.on&&qt.left<=codingLimitSec*0.1)?'var(--dan)':(qt.on&&qt.left<=codingLimitSec*0.3)?'var(--warn)':'var(--acc)';
+
+  const qtRow = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surf2);border-radius:5px;border:1px solid var(--bdr);margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div>
+          <div style="font-size:9px;color:var(--mut);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Per question</div>
+          <span style="font-size:22px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:${(qt.on&&qt.left<=codingLimitSec*0.1)?'var(--dan)':(qt.on&&qt.left<=codingLimitSec*0.3)?'var(--warn)':'var(--acc)'}" id="qtTime">${codingTimeStr}</span>
+        </div>
+        <div style="width:120px">
+          <div style="height:3px;background:var(--bdr);border-radius:2px;overflow:hidden">
+            <div id="qtBar" style="height:3px;width:${codingBarPct}%;background:${codingBarColor};border-radius:2px;transition:width 1s linear,background .5s"></div>
           </div>
-        `;
-      }
-    }
+          <div style="font-size:9px;color:var(--mut);font-family:'IBM Plex Mono',monospace;margin-top:3px">limit: ${limitLabel} · ${q.diff}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${done && done.timeTaken !== undefined ? `<span class="qt-split ${done.timeTaken<=codingLimitSec*0.5?'fast':done.timeTaken>codingLimitSec*0.8?'slow':''}">${Math.floor(done.timeTaken/60)}m ${done.timeTaken%60}s taken</span>` : ''}
+        ${done && done.timeout ? '<span class="qt-expired">⏱ timed out</span>' : ''}
+        ${!done ? `<button class="qt-toggle${qt.on?' on':''}" onclick="qtToggle()" style="padding:5px 14px">${qt.on?'⏸ Pause':'▶ Start'}</button>` : ''}
+      </div>
+    </div>`;
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
+  document.getElementById('mainArea').innerHTML=`
+    <div class="pg-hdr"><h2>Coding Drills</h2><p>Python problems that mirror the Trafigura assessment format</p></div>
+    <div class="prog-row"><div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div><span class="prog-lbl">${state.idx+1}/${qs.length}</span></div>
+    <div class="q-card">
+      <div class="q-hdr"><span class="q-num">Q${state.idx+1}</span><span class="dbadge ${q.diff}">${q.diff}</span></div>
+      ${qtRow}
+      <div class="q-txt">${q.text}</div>
+      <textarea class="code-editor" id="codeEd">${esc(q.starter)}</textarea>
+      <div class="hint-box">💡 ${q.hint}</div>
+      <div class="coding-btns">
+        <button class="btn primary" onclick="checkCode()">▶ Check Approach</button>
+        <button class="btn" onclick="document.getElementById('codeEd').value=\`${starter}\`">↺ Reset</button>
+      </div>
+      <div class="test-results" id="testRes"></div>
+      <div class="nav-row">
+        <button class="btn" onclick="prevQ()" ${state.idx===0?'disabled':''}>← Prev</button>
+        <button class="btn primary" onclick="nextQ()" ${state.idx===qs.length-1?'disabled':''}>Next →</button>
+      </div>
+    </div>`;
 
-    function selectOption(index, isCorrect) {
-      const q = questions[currentCategory][currentIndex];
-      if (stats.answered[q.id]) return;
-
-      stats.answered[q.id] = { selected: index, correct: isCorrect };
-      stats.done++;
-      if (isCorrect) {
-        stats.correct++;
+  // restart timer after render
+  if(qt.on && !done) {
+    if(!qt.interval) qtStart(q);
+    else qtUpdateBar();
+  }
+}
+function checkCode(){
+  const q=QUESTIONS.coding[state.idx];
+  const code=document.getElementById('codeEd').value;
+  const res=document.getElementById('testRes');
+  res.innerHTML='<div style="color:var(--mut);font-size:11px;padding:6px">Running...</div>';
+  setTimeout(()=>{
+    const hasFn=code.includes('def '+q.fn);
+    const hasRet=code.includes('return');
+    const isPass=code.trim().endsWith('pass');
+    const hints={sum_even:['%','sum','for','even'],first_unique_char:['dict','Counter','count','for'],two_sum:['dict','{','seen','target'],is_palindrome:['isalnum','lower','reverse','[::-1]'],longest_common_prefix:['sort','for','zip','min']};
+    let html='';
+    if(!hasFn||!hasRet||isPass){html=`<div class="tc fail">✗ Add your implementation and a return statement</div>`;}
+    else{
+      const usesPattern=(hints[q.fn]||[]).some(kw=>code.includes(kw));
+      if(usesPattern){
+        html+=`<div class="tc pass">✓ Function defined correctly</div>`;
+        html+=`<div class="tc pass">✓ Pattern recognition looks right</div>`;
+        html+=`<div class="tc pass">✓ Return statement present</div>`;
+        if(!state.answered['d_'+q.id]){
+          const timeTaken = qt.on && qt.startTs ? Math.round((Date.now()-qt.startTs)/1000) : undefined;
+          qtStop();
+          state.answered['d_'+q.id]={correct:true,timeTaken};
+          state.stats.done++;state.stats.correct++;saveState();updateStats();renderDrill();}
       } else {
-        stats.wrong++;
-      }
-      saveStats();
-      updateStatsDisplay();
-      renderQuestion();
-    }
-
-    function runTests() {
-      const code = document.getElementById('codeEditor').value;
-      const q = questions.coding[currentIndex];
-      const results = document.getElementById('testResults');
-      
-      results.innerHTML = '<p style="color: #888; font-size: 14px;">Running tests...</p>';
-      
-      setTimeout(() => {
-        let html = '';
-        let allPassed = true;
-        
-        q.testCases.forEach((tc, i) => {
-          try {
-            const fullCode = code + `\n\n__result__ = ${q.id.replace('code', 'sum_even' === 'code1' ? 'sum_even' : getFuncName(q.id))}(${formatInput(tc.input)})`;
-            const passed = Math.random() > 0.3;
-            
-            if (passed) {
-              html += `<div class="test-case pass">✓ Test ${i + 1}: Passed</div>`;
-            } else {
-              html += `<div class="test-case fail">✗ Test ${i + 1}: Expected ${JSON.stringify(tc.expected)}</div>`;
-              allPassed = false;
-            }
-          } catch (e) {
-            html += `<div class="test-case fail">✗ Test ${i + 1}: Error - ${e.message}</div>`;
-            allPassed = false;
-          }
-        });
-        
-        results.innerHTML = html;
-        
-        if (allPassed && !stats.answered[q.id]) {
-          stats.answered[q.id] = { correct: true };
-          stats.done++;
-          stats.correct++;
-          saveStats();
-          updateStatsDisplay();
-        }
-      }, 500);
-    }
-
-    function getFuncName(id) {
-      const names = {
-        'code1': 'sum_even',
-        'code2': 'first_unique_char',
-        'code3': 'two_sum',
-        'code4': 'is_palindrome',
-        'code5': 'longest_common_prefix'
-      };
-      return names[id] || 'solution';
-    }
-
-    function formatInput(input) {
-      if (Array.isArray(input)) {
-        if (Array.isArray(input[0])) {
-          return input.map(i => JSON.stringify(i)).join(', ');
-        }
-        return JSON.stringify(input);
-      }
-      return typeof input === 'string' ? `"${input}"` : input;
-    }
-
-    function resetCode() {
-      const q = questions.coding[currentIndex];
-      document.getElementById('codeEditor').value = q.starterCode;
-      document.getElementById('testResults').innerHTML = '';
-    }
-
-    function prevQuestion() {
-      if (currentIndex > 0) {
-        currentIndex--;
-        renderQuestion();
+        html+=`<div class="tc pass">✓ Function structure OK</div>`;
+        html+=`<div class="tc fail">✗ Try a different approach — check the NeetCode section for pattern hints</div>`;
       }
     }
+    res.innerHTML=html;
+  },350);
+}
 
-    function nextQuestion() {
-      if (currentIndex < questions[currentCategory].length - 1) {
-        currentIndex++;
-        renderQuestion();
-      }
+// ── TIMER ────────────────────────────────────────────────────────────────────
+function setTimer(on){
+  state.timerOn=on;
+  if(!on&&state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null;}
+  if(on&&!state.timerInterval){
+    state.timeLeft=3600;
+    state.timerInterval=setInterval(()=>{
+      state.timeLeft--;
+      const el=document.getElementById('timerEl');
+      if(el){el.textContent=fmt(state.timeLeft);el.className='timer-el'+(state.timeLeft<300?' warn':'');}
+      if(state.timeLeft<=0){clearInterval(state.timerInterval);state.timerInterval=null;alert("Time\'s up!");}
+    },1000);
+  }
+  render();
+}
+function fmt(s){return Math.floor(s/60).toString().padStart(2,'0')+':'+(s%60).toString().padStart(2,'0');}
+
+// Floating timer (works across all sections)
+function startFloatTimer(){
+  document.getElementById('ftStart').classList.add('hidden');
+  document.getElementById('ftRunning').classList.remove('hidden');
+  state.timeLeft=3600;
+  if(state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval=setInterval(()=>{
+    state.timeLeft--;
+    const disp=document.getElementById('ftDisplay');
+    const box=document.getElementById('ftRunning');
+    if(disp){
+      disp.textContent=fmt(state.timeLeft);
+      disp.className='ft-time'+(state.timeLeft<300?' warn':'');
+      box.className='float-timer'+(state.timeLeft<300?' warn':'');
     }
-
-    function setMode(newMode) {
-      mode = newMode;
-      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      
-      if (mode === 'timed') {
-        document.getElementById('timerDisplay').classList.remove('hidden');
-        startTimer();
-      } else {
-        document.getElementById('timerDisplay').classList.add('hidden');
-        if (timerInterval) clearInterval(timerInterval);
-      }
+    if(state.timeLeft<=0){
+      clearInterval(state.timerInterval);
+      state.timerInterval=null;
+      document.getElementById('ftRunning').classList.add('hidden');
+      document.getElementById('ftStart').classList.remove('hidden');
+      showTimeUp();
     }
+  },1000);
+}
+function stopFloatTimer(){
+  if(state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null;}
+  document.getElementById('ftRunning').classList.add('hidden');
+  document.getElementById('ftStart').classList.remove('hidden');
+  document.getElementById('ftDisplay').textContent='60:00';
+}
+function showTimeUp(){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML=`<div style="background:var(--surf);border:1px solid var(--dan);border-radius:8px;padding:32px 40px;text-align:center;max-width:360px">
+    <div style="font-size:32px;margin-bottom:12px">⏱</div>
+    <div style="font-size:18px;font-weight:600;color:var(--dan);font-family:'IBM Plex Mono',monospace;margin-bottom:8px">TIME\'S UP!</div>
+    <div style="font-size:13px;color:var(--mut);margin-bottom:20px">In the real assessment your answers would be auto-submitted. In a real 60-min test, aim to do all MCQ sections first, then tackle the coding question with remaining time.</div>
+    <button onclick="this.parentElement.parentElement.remove()" style="padding:8px 20px;border-radius:4px;border:1px solid var(--acc);background:rgba(0,212,170,.08);color:var(--acc);cursor:pointer;font-family:\'IBM Plex Mono\',monospace;font-size:12px">Continue Practising</button>
+  </div>`;
+  document.body.appendChild(overlay);
+}
 
-    function startTimer() {
-      timeLeft = 3600;
-      updateTimerDisplay();
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        updateTimerDisplay();
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          alert('Time\'s up! In the real assessment, your answers would be auto-submitted.');
-        }
-      }, 1000);
-    }
+// ── RESET ────────────────────────────────────────────────────────────────────
+function resetAll(){if(confirm('Reset all progress?')){state.answered={};state.ncSolved={};state.stats={done:0,correct:0,wrong:0};saveState();updateStats();render();}}
 
-    function updateTimerDisplay() {
-      const mins = Math.floor(timeLeft / 60);
-      const secs = timeLeft % 60;
-      const display = document.getElementById('timer');
-      display.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      display.className = timeLeft < 300 ? 'timer' : 'timer safe';
-    }
-
-    function resetProgress() {
-      if (confirm('Are you sure you want to reset all progress?')) {
-        stats = { done: 0, correct: 0, wrong: 0, answered: {} };
-        saveStats();
-        updateStatsDisplay();
-        renderQuestion();
-      }
-    }
-
-    loadStats();
-    renderTabs();
-    renderQuestion();
-  </script>
+// ── INIT ─────────────────────────────────────────────────────────────────────
+loadState();render();
+</script>
 </body>
 </html>
